@@ -1,0 +1,1750 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>SpotGuide — ThoughtSpot Embedded</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ts-dark:#080628; --ts-navy:#1B3E61; --ts-blue:#346DC9; --ts-blue-dark:#275595;
+  --ts-cyan:#04D1FF; --ts-cyan-tint:#9FE9FF; --ts-light:#EEF7FF; --ts-gray:#5a7091;
+  --ts-border:#cdd8e8; --ts-green:#6DD257; --ts-yellow:#FFC052; --ts-red:#FF92A8;
+  --ts-purple:#3D2B94; --ts-blurple:#7146FB; --radius:12px; --shadow:0 2px 16px rgba(52,109,201,0.10);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-padding-top:70px;}
+body{font-family:'Geist Mono','SF Mono','Fira Code',monospace;background:#fff;color:var(--ts-dark);line-height:1.6;}
+
+/* NAV */
+nav{position:sticky;top:0;z-index:100;background:rgba(8,6,40,0.97);backdrop-filter:blur(8px);border-bottom:1px solid rgba(4,209,255,0.15);padding:0 2rem;display:flex;align-items:center;justify-content:space-between;height:60px;gap:1rem;}
+.nav-brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:1rem;color:#fff;text-decoration:none;flex-shrink:0;}
+.nav-brand .dot{color:var(--ts-cyan);}
+.nav-links{display:flex;gap:1.4rem;list-style:none;}
+.nav-links a{font-size:0.8rem;color:rgba(255,255,255,0.55);text-decoration:none;font-weight:500;transition:color .2s;}
+.nav-links a:hover{color:var(--ts-cyan);}
+.nav-role-indicator{font-size:0.74rem;color:var(--ts-cyan);display:none;align-items:center;gap:.4rem;white-space:nowrap;flex-shrink:0;}
+.nav-role-indicator.visible{display:flex;}
+.nav-role-change{color:rgba(255,255,255,0.4);cursor:pointer;background:none;border:none;font-family:inherit;font-size:0.74rem;text-decoration:underline;}
+.nav-role-change:hover{color:#fff;}
+
+/* HERO */
+.hero{background:linear-gradient(135deg,var(--ts-dark) 0%,#0d1a2e 55%,#122246 100%);color:#fff;padding:5rem 2rem 4rem;text-align:center;position:relative;overflow:hidden;}
+.hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 70% 50%,rgba(4,209,255,0.07) 0%,transparent 60%),radial-gradient(ellipse at 25% 80%,rgba(113,70,251,0.1) 0%,transparent 50%);pointer-events:none;}
+.hero-badge{display:inline-block;background:rgba(4,209,255,0.1);border:1px solid rgba(4,209,255,0.3);border-radius:999px;padding:.3rem 1rem;font-size:.78rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;margin-bottom:1.5rem;color:var(--ts-cyan);}
+.hero h1{font-size:clamp(2rem,5vw,3.2rem);font-weight:800;line-height:1.15;max-width:760px;margin:0 auto 1.2rem;}
+.hero h1 em{font-style:normal;color:var(--ts-cyan);}
+.hero p{font-size:1rem;color:rgba(255,255,255,0.6);max-width:620px;margin:0 auto 2.5rem;line-height:1.7;}
+.hero-ctas{display:flex;flex-wrap:wrap;gap:1rem;justify-content:center;}
+.btn{display:inline-flex;align-items:center;gap:.4rem;padding:.7rem 1.4rem;border-radius:8px;font-weight:600;font-size:.88rem;font-family:inherit;text-decoration:none;transition:all .2s;cursor:pointer;border:none;}
+.btn-primary{background:var(--ts-cyan);color:var(--ts-dark);}
+.btn-primary:hover{background:var(--ts-cyan-tint);transform:translateY(-1px);}
+.btn-outline{background:transparent;border:1.5px solid rgba(4,209,255,0.35);color:#fff;}
+.btn-outline:hover{background:rgba(4,209,255,0.08);border-color:var(--ts-cyan);}
+
+/* TIMELINE */
+.timeline-section{background:var(--ts-dark);padding:3rem 2rem;text-align:center;border-bottom:1px solid rgba(4,209,255,0.1);}
+.timeline-label{font-size:.78rem;font-weight:600;color:var(--ts-cyan);text-transform:uppercase;letter-spacing:.08em;margin-bottom:1.5rem;}
+.timeline{display:flex;flex-wrap:wrap;justify-content:center;gap:0;max-width:900px;margin:0 auto;}
+.phase-step{display:flex;flex-direction:column;align-items:center;flex:1;min-width:140px;position:relative;text-decoration:none;color:inherit;cursor:pointer;}
+.phase-step:hover .phase-num{transform:scale(1.12);box-shadow:0 0 0 4px rgba(4,209,255,0.25);}
+.phase-step:hover .phase-name{color:var(--ts-cyan);}
+.phase-step:not(:last-child)::after{content:'';position:absolute;top:22px;left:60%;width:80%;height:2px;background:linear-gradient(90deg,var(--ts-blue),var(--ts-cyan));}
+.phase-num{width:44px;height:44px;background:linear-gradient(135deg,var(--ts-blue),var(--ts-cyan));color:var(--ts-dark);border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.9rem;margin-bottom:.6rem;position:relative;z-index:1;transition:transform .2s,box-shadow .2s;}
+.phase-name{font-weight:700;font-size:.9rem;color:#fff;transition:color .2s;}
+.phase-weeks{font-size:.72rem;color:rgba(255,255,255,0.45);margin-top:.2rem;}
+
+/* ROLE SELECTOR */
+.role-selector-wrap{background:var(--ts-dark);border-bottom:2px solid rgba(4,209,255,0.12);padding:1.8rem 2rem;text-align:center;}
+.role-selector-label{font-size:.74rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,0.4);margin-bottom:1rem;}
+.role-btns{display:flex;flex-wrap:wrap;gap:.7rem;justify-content:center;}
+.role-btn{display:inline-flex;align-items:center;gap:.5rem;padding:.5rem 1.2rem;border:1.5px solid rgba(255,255,255,0.18);border-radius:999px;background:transparent;font-family:inherit;font-size:.84rem;font-weight:600;color:rgba(255,255,255,0.6);cursor:pointer;transition:all .15s;position:relative;}
+.role-btn:hover{border-color:var(--ts-cyan);color:#fff;}
+.role-btn.active{background:var(--ts-cyan);border-color:var(--ts-cyan);color:var(--ts-dark);}
+.card.role-dim{opacity:.18;pointer-events:none;filter:grayscale(.5);}
+
+/* SECTION LAYOUT */
+.section{padding:4rem 2rem;max-width:1100px;margin:0 auto;}
+.section-title{font-size:1.55rem;font-weight:800;color:var(--ts-dark);margin-bottom:.4rem;}
+.section-title--phase{display:inline-block;background:#346DC9;color:#fff !important;padding:.38rem 1.1rem .38rem .85rem;border-radius:7px;letter-spacing:-.01em;box-shadow:0 2px 10px rgba(52,109,201,0.3);}
+.section-sub{color:var(--ts-gray);font-size:.93rem;margin-bottom:1.8rem;max-width:700px;}
+.phase-meta{display:flex;flex-wrap:wrap;gap:1rem;margin-bottom:1.8rem;padding:.6rem 1rem;background:rgba(52,109,201,0.05);border:1px solid var(--ts-border);border-radius:8px;font-size:.77rem;color:var(--ts-gray);}
+.phase-meta span{display:flex;align-items:center;gap:.3rem;}
+.subsection-title{font-size:1.05rem;font-weight:700;color:var(--ts-dark);margin:2.5rem 0 .4rem;}
+.subsection-sub{font-size:.87rem;color:var(--ts-gray);margin-bottom:1.2rem;}
+hr.divider{border:none;border-top:1px solid var(--ts-border);margin:3.5rem 0;}
+
+/* CALLOUTS */
+.callout{background:rgba(52,109,201,0.06);border-left:4px solid var(--ts-blue);border-radius:0 var(--radius) var(--radius) 0;padding:1.1rem 1.4rem;margin:1.5rem 0;font-size:.9rem;color:var(--ts-navy);line-height:1.6;}
+.callout.warn{background:rgba(255,192,82,0.08);border-color:var(--ts-yellow);color:var(--ts-navy);}
+.callout.critical{background:rgba(255,146,168,0.08);border-color:var(--ts-red);color:var(--ts-navy);}
+.callout.success{background:rgba(109,210,87,0.08);border-color:var(--ts-green);color:var(--ts-navy);}
+.callout strong{display:block;margin-bottom:.3rem;font-size:.93rem;}
+
+/* CARD GRID */
+.card-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1.2rem;}
+.card{border:1px solid var(--ts-border);border-radius:var(--radius);padding:1.4rem;background:#fff;box-shadow:var(--shadow);transition:transform .2s,box-shadow .2s,opacity .2s,filter .2s;text-decoration:none;color:inherit;display:flex;flex-direction:column;gap:.5rem;}
+a.card:hover{transform:translateY(-3px);box-shadow:0 8px 24px rgba(4,209,255,0.12);}
+.card-icon{font-size:1.5rem;}
+.card h3{font-size:.93rem;font-weight:700;color:var(--ts-dark);}
+.card p{font-size:.82rem;color:var(--ts-gray);line-height:1.5;}
+.card-link{font-size:.8rem;font-weight:600;color:var(--ts-blue);text-decoration:none;margin-top:auto;}
+.card-tag{display:inline-block;font-size:.68rem;font-weight:700;padding:.12rem .5rem;border-radius:999px;text-transform:uppercase;letter-spacing:.04em;}
+.tag-eng{background:rgba(52,109,201,0.1);color:var(--ts-blue);}
+.tag-prod{background:rgba(255,146,168,0.12);color:var(--ts-blue-dark);}
+.tag-data{background:rgba(109,210,87,0.12);color:var(--ts-blue-dark);}
+.tag-admin{background:rgba(255,192,82,0.12);color:var(--ts-blue-dark);}
+.tag-all{background:rgba(113,70,251,0.1);color:var(--ts-blurple);}
+
+/* STEP LIST */
+.step-list{display:flex;flex-direction:column;gap:1.2rem;}
+.step{display:flex;gap:1.2rem;padding:1.2rem 1.4rem;background:#fff;border:1px solid var(--ts-border);border-radius:var(--radius);box-shadow:var(--shadow);}
+.step-num{width:32px;height:32px;flex-shrink:0;background:linear-gradient(135deg,var(--ts-blue),var(--ts-cyan));color:var(--ts-dark);border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.85rem;}
+.step-content h4{font-size:.93rem;font-weight:700;margin-bottom:.3rem;}
+.step-content p{font-size:.84rem;color:var(--ts-gray);line-height:1.5;}
+.step-content code,.cdw-step-body code,p code{font-family:inherit;background:rgba(52,109,201,0.08);border:1px solid rgba(52,109,201,0.15);border-radius:4px;padding:.1rem .4rem;font-size:.82rem;color:var(--ts-blue-dark);}
+
+/* CDW TABS */
+.cdw-tabs{display:flex;gap:0;border-bottom:2px solid var(--ts-border);margin-bottom:1.5rem;flex-wrap:wrap;}
+.cdw-tab{padding:.55rem 1.1rem;font-size:.82rem;font-weight:600;color:var(--ts-gray);cursor:pointer;border:none;background:none;font-family:inherit;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .15s;}
+.cdw-tab.active{color:var(--ts-blue);border-bottom-color:var(--ts-blue);}
+.cdw-tab:hover:not(.active){color:var(--ts-dark);}
+.cdw-tab-content{display:none;}
+.cdw-tab-content.active{display:block;}
+.cdw-steps{display:flex;flex-direction:column;gap:.7rem;}
+.cdw-step{display:flex;gap:1rem;padding:1rem 1.2rem;background:#fff;border:1px solid var(--ts-border);border-radius:8px;}
+.cdw-step-num{width:24px;height:24px;flex-shrink:0;background:var(--ts-blue);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:700;margin-top:2px;}
+.cdw-step-body p{font-size:.84rem;color:var(--ts-gray);line-height:1.5;}
+.cdw-step-body pre{font-size:.78rem;color:var(--ts-gray);background:rgba(52,109,201,0.04);border:1px solid var(--ts-border);border-radius:6px;padding:.6rem .8rem;margin-top:.4rem;overflow-x:auto;white-space:pre;}
+
+
+/* DECISION TABLE */
+.table-wrap{overflow-x:auto;margin:1.2rem 0;border-radius:var(--radius);border:1px solid var(--ts-border);}
+.dt{width:100%;border-collapse:collapse;font-size:.83rem;min-width:560px;}
+.dt th{background:var(--ts-dark);color:rgba(255,255,255,0.7);padding:.7rem 1rem;text-align:left;font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;}
+.dt td{padding:.8rem 1rem;border-bottom:1px solid var(--ts-border);vertical-align:top;line-height:1.5;}
+.dt tr:last-child td{border-bottom:none;}
+.dt tr:nth-child(even) td{background:rgba(52,109,201,0.02);}
+.dt tr:hover td{background:var(--ts-light);}
+.badge{display:inline-block;font-size:.7rem;font-weight:700;padding:.12rem .5rem;border-radius:999px;}
+.badge-green{background:rgba(109,210,87,0.15);color:var(--ts-blue-dark);}
+.badge-yellow{background:rgba(255,192,82,0.15);color:var(--ts-blue-dark);}
+.badge-blue{background:rgba(52,109,201,0.12);color:var(--ts-blue);}
+.badge-red{background:rgba(255,146,168,0.15);color:var(--ts-blue-dark);}
+
+/* PATTERN CARDS */
+.pattern-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:1.2rem;margin-bottom:1.5rem;}
+.pattern-card{border:2px solid var(--ts-border);border-radius:var(--radius);padding:1.5rem;background:#fff;box-shadow:var(--shadow);position:relative;}
+.pattern-card.recommended{border-color:var(--ts-cyan);}
+.pattern-card.recommended::after{content:'★ MVP default';position:absolute;top:-1px;right:1rem;background:var(--ts-cyan);color:var(--ts-dark);font-size:.68rem;font-weight:800;padding:.2rem .6rem;border-radius:0 0 6px 6px;}
+.pattern-title{font-size:1rem;font-weight:800;color:var(--ts-dark);margin-bottom:.5rem;}
+.pattern-use{font-size:.78rem;font-weight:700;color:var(--ts-blue);text-transform:uppercase;letter-spacing:.05em;margin-bottom:.5rem;}
+.pattern-desc{font-size:.83rem;color:var(--ts-gray);margin-bottom:1rem;line-height:1.5;}
+.pattern-list{list-style:none;padding:0;}
+.pattern-list li{font-size:.81rem;color:var(--ts-gray);padding:.2rem 0;display:flex;align-items:flex-start;gap:.4rem;}
+.pros li::before{content:"✓";color:var(--ts-green);flex-shrink:0;font-weight:700;}
+.cons li::before{content:"△";color:var(--ts-yellow);flex-shrink:0;}
+
+/* SDK COMPONENT GRID */
+.sdk-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:.8rem;margin:1.2rem 0;}
+.sdk-comp{background:var(--ts-light);border:1px solid var(--ts-border);border-radius:8px;padding:.9rem 1.1rem;}
+.sdk-class{font-size:.75rem;font-weight:700;color:var(--ts-blurple);margin-bottom:.2rem;}
+.sdk-name{font-size:.88rem;font-weight:700;color:var(--ts-dark);margin-bottom:.2rem;}
+.sdk-desc{font-size:.76rem;color:var(--ts-gray);}
+
+/* AUTH FLOW */
+.auth-flow{display:flex;flex-direction:column;gap:0;margin:1.5rem 0;max-width:640px;}
+.auth-row{display:flex;align-items:flex-start;gap:1rem;position:relative;}
+.auth-row:not(:last-child){padding-bottom:1rem;}
+.auth-row:not(:last-child)::after{content:'';position:absolute;left:17px;top:38px;bottom:0;width:2px;background:linear-gradient(var(--ts-blue),var(--ts-cyan));border-radius:1px;}
+.auth-dot{width:36px;height:36px;flex-shrink:0;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:700;z-index:1;}
+.auth-dot.app{background:rgba(52,109,201,0.15);color:var(--ts-blue);border:2px solid var(--ts-blue);}
+.auth-dot.back{background:rgba(255,192,82,0.15);color:var(--ts-navy);border:2px solid var(--ts-yellow);}
+.auth-dot.ts{background:rgba(4,209,255,0.12);color:var(--ts-navy);border:2px solid var(--ts-cyan);}
+.auth-body{flex:1;padding:.7rem 1rem;background:#fff;border:1px solid var(--ts-border);border-radius:8px;}
+.auth-body h4{font-size:.87rem;font-weight:700;margin-bottom:.2rem;}
+.auth-body p{font-size:.81rem;color:var(--ts-gray);}
+
+/* ROLE CARDS GRID */
+.roles-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:1rem;margin-top:1rem;}
+.role-card{border:1px solid var(--ts-border);border-radius:var(--radius);padding:1.3rem;background:#fff;box-shadow:var(--shadow);}
+.role-card-title{font-weight:700;font-size:.93rem;margin-bottom:.8rem;display:flex;align-items:center;gap:.5rem;}
+.role-card ul{list-style:none;padding:0;}
+.role-card ul li{font-size:.81rem;color:var(--ts-gray);padding:.25rem 0;border-bottom:1px solid var(--ts-border);display:flex;align-items:flex-start;gap:.4rem;}
+.role-card ul li:last-child{border-bottom:none;}
+.role-card ul li::before{content:"→";color:var(--ts-cyan);flex-shrink:0;}
+
+/* CHECKLIST */
+.checklist-section-title{font-size:.83rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--ts-blue);margin:1.8rem 0 .8rem;padding-bottom:.5rem;border-bottom:1px solid var(--ts-border);}
+.check-items{display:flex;flex-direction:column;gap:.4rem;margin-bottom:1.2rem;}
+.check-item{display:flex;align-items:flex-start;gap:.75rem;padding:.65rem 1rem;background:#fff;border:1px solid var(--ts-border);border-radius:8px;font-size:.86rem;cursor:pointer;transition:background .15s;}
+.check-item:hover{background:var(--ts-light);}
+.check-item.done{background:rgba(109,210,87,0.06);border-color:rgba(109,210,87,0.3);}
+.check-item input[type=checkbox]{width:16px;height:16px;margin-top:2px;accent-color:var(--ts-cyan);flex-shrink:0;cursor:pointer;}
+.check-item label{cursor:pointer;line-height:1.45;}
+.check-progress{display:flex;align-items:center;gap:1rem;margin-bottom:1.5rem;}
+.check-bar-wrap{flex:1;height:6px;background:var(--ts-border);border-radius:3px;overflow:hidden;}
+.check-bar{height:100%;background:linear-gradient(90deg,var(--ts-blue),var(--ts-cyan));border-radius:3px;transition:width .3s;width:0%;}
+.check-label{font-size:.79rem;color:var(--ts-gray);white-space:nowrap;}
+
+/* ACCORDION */
+.accordion{border:1px solid var(--ts-border);border-radius:var(--radius);overflow:hidden;margin-top:.5rem;}
+.acc-item{border-bottom:1px solid var(--ts-border);}
+.acc-item:last-child{border-bottom:none;}
+.acc-trigger{width:100%;display:flex;align-items:center;gap:1rem;padding:1rem 1.4rem;background:none;border:none;font-family:inherit;font-size:.88rem;font-weight:700;color:var(--ts-dark);cursor:pointer;text-align:left;transition:background .15s;}
+.acc-trigger:hover{background:var(--ts-light);}
+.acc-trigger .err-tag{display:inline-block;font-size:.68rem;font-weight:700;padding:.12rem .5rem;border-radius:999px;background:rgba(255,146,168,0.15);color:var(--ts-blue-dark);white-space:nowrap;}
+.acc-trigger .arrow{margin-left:auto;color:var(--ts-blue);transition:transform .2s;flex-shrink:0;}
+.acc-trigger.open .arrow{transform:rotate(180deg);}
+.acc-body{display:none;padding:0 1.4rem 1.2rem;}
+.acc-body.open{display:block;}
+.acc-body p{font-size:.85rem;color:var(--ts-gray);line-height:1.6;}
+.fix-box{background:rgba(109,210,87,0.07);border-left:3px solid var(--ts-green);padding:.7rem 1rem;border-radius:0 6px 6px 0;margin-top:.8rem;font-size:.84rem;color:var(--ts-navy);}
+.fix-box strong{display:block;margin-bottom:.2rem;}
+
+/* MULTI-TENANCY CARDS */
+.mt-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1.2rem;margin:1.2rem 0;}
+.mt-card{border:2px solid var(--ts-border);border-radius:var(--radius);padding:1.4rem;background:#fff;box-shadow:var(--shadow);}
+.mt-card.mt-blue{border-color:var(--ts-blue);}
+.mt-card.mt-yellow{border-color:var(--ts-yellow);}
+.mt-card.mt-red{border-color:var(--ts-red);}
+.mt-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:.8rem;}
+.mt-title{font-size:1rem;font-weight:800;color:var(--ts-dark);}
+.mt-badge{font-size:.7rem;font-weight:700;padding:.2rem .6rem;border-radius:999px;text-transform:uppercase;}
+.mt-badge.fast{background:rgba(52,109,201,0.1);color:var(--ts-blue);}
+.mt-badge.safe{background:rgba(255,192,82,0.15);color:var(--ts-blue-dark);}
+.mt-badge.max{background:rgba(255,146,168,0.15);color:var(--ts-blue-dark);}
+.mt-card p{font-size:.83rem;color:var(--ts-gray);line-height:1.5;margin-bottom:.8rem;}
+.mt-card ul{list-style:none;padding:0;}
+.mt-card ul li{font-size:.81rem;color:var(--ts-gray);padding:.2rem 0;display:flex;gap:.4rem;}
+.mt-card ul li::before{content:"→";color:var(--ts-cyan);flex-shrink:0;}
+
+/* CI/CD PIPELINE */
+.pipeline{display:flex;flex-direction:column;gap:.4rem;margin:1.2rem 0;}
+.pipe-stage{display:flex;gap:1rem;padding:.9rem 1.2rem;background:#fff;border:1px solid var(--ts-border);border-radius:8px;position:relative;}
+
+/* SPOTTER EMBED SECTION */
+.spotter-embed-section{background:linear-gradient(135deg,var(--ts-dark) 0%,var(--ts-purple) 60%,var(--ts-blurple) 100%);color:#fff;border-radius:16px;padding:3rem 2.5rem;margin:2rem 0;position:relative;overflow:hidden;}
+.spotter-embed-section::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 80% 20%,rgba(4,209,255,0.12) 0%,transparent 50%);pointer-events:none;}
+.spotter-embed-section h3{font-size:1.5rem;font-weight:800;margin-bottom:.5rem;color:#fff;}
+.spotter-embed-section>.ses-sub{color:rgba(255,255,255,0.65);font-size:.97rem;max-width:600px;margin-bottom:2rem;}
+.ses-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:1rem;margin-bottom:2rem;}
+.ses-card{background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:10px;padding:1.1rem;}
+.ses-card h4{font-size:.9rem;font-weight:700;margin-bottom:.3rem;color:#fff;}
+.ses-card p{font-size:.82rem;color:rgba(255,255,255,0.6);margin:0;}
+.ses-label{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--ts-cyan);margin:2rem 0 .6rem;}
+.ses-h3{font-size:1.05rem;font-weight:800;margin-bottom:1rem;color:#fff;}
+.ses-accordion .accordion-item{background:rgba(255,255,255,0.07);border-color:rgba(255,255,255,0.12);}
+.ses-accordion .accordion-header{color:#fff;}
+.ses-accordion .accordion-header:hover{background:rgba(255,255,255,0.05);}
+.ses-accordion .accordion-body{color:rgba(255,255,255,0.65);border-top-color:rgba(255,255,255,0.1);}
+.ses-accordion .accordion-body strong{color:#fff;}
+.ses-limitations{background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.15);border-radius:10px;padding:1.2rem 1.4rem;}
+.ses-limitations li{font-size:.84rem;color:rgba(255,255,255,0.7);margin-bottom:.4rem;line-height:1.5;}
+.spotter-embed-section code{color:#fff;background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.2);border-radius:4px;padding:.1rem .4rem;font-size:.82rem;}
+.pipe-icon{width:30px;height:30px;background:linear-gradient(135deg,var(--ts-blue),var(--ts-blurple));border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:.85rem;flex-shrink:0;}
+.pipe-body h4{font-size:.88rem;font-weight:700;margin-bottom:.15rem;}
+.pipe-body p{font-size:.81rem;color:var(--ts-gray);}
+
+/* GLOSSARY */
+.glossary-wrap{max-width:1100px;margin:0 auto;padding:0 2rem 3rem;}
+.glossary-btn{display:flex;align-items:center;gap:.5rem;background:none;border:1.5px solid var(--ts-border);border-radius:8px;padding:.55rem 1.1rem;font-family:inherit;font-size:.84rem;font-weight:600;color:var(--ts-blue);cursor:pointer;transition:all .15s;}
+.glossary-btn:hover{border-color:var(--ts-blue);background:var(--ts-light);}
+.glossary-btn .arr{transition:transform .2s;display:inline-block;}
+.glossary-btn.open .arr{transform:rotate(180deg);}
+.glossary-grid{display:none;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:.9rem;margin-top:1rem;}
+.glossary-grid.open{display:grid;}
+.glossary-card{background:var(--ts-light);border:1px solid var(--ts-border);border-radius:var(--radius);padding:1rem 1.2rem;}
+.glossary-card dt{font-weight:800;font-size:.87rem;color:var(--ts-dark);margin-bottom:.3rem;}
+.glossary-card dd{font-size:.8rem;color:var(--ts-gray);line-height:1.5;}
+
+/* PROGRESS SIDEBAR */
+.progress-sidebar{position:fixed;right:1.5rem;top:50%;transform:translateY(-50%);z-index:90;display:flex;flex-direction:column;align-items:center;gap:.6rem;background:#0c0d25;border:1px solid rgba(4,209,255,0.2);border-radius:10px;padding:1rem .6rem;}
+.prog-phase{display:flex;align-items:center;cursor:pointer;text-decoration:none;position:relative;}
+.prog-dot{width:10px;height:10px;border-radius:50%;background:rgba(255,255,255,0.2);border:2px solid rgba(255,255,255,0.2);transition:all .2s;flex-shrink:0;}
+.prog-lbl{font-size:.7rem;font-weight:600;opacity:0;pointer-events:none;white-space:nowrap;background:rgba(8,6,40,0.92);color:rgba(255,255,255,0.9);padding:.25rem .65rem;border-radius:5px;border:1px solid rgba(4,209,255,0.15);position:absolute;right:calc(100% + 10px);transform:translateX(4px);transition:opacity .15s,transform .15s;}
+.prog-phase:hover .prog-lbl{opacity:1;transform:translateX(0);}
+.prog-phase.active .prog-dot{background:var(--ts-cyan);border-color:var(--ts-cyan);box-shadow:0 0 0 3px rgba(4,209,255,0.2);}
+.prog-phase.done .prog-dot{background:var(--ts-blue);border-color:var(--ts-blue);}
+
+/* FEEDBACK */
+
+/* TOOLTIPS */
+[data-tooltip]{position:relative;}
+[data-tooltip]::before{content:attr(data-tooltip);position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);background:var(--ts-dark);color:rgba(255,255,255,0.9);font-size:.71rem;font-weight:500;line-height:1.4;white-space:normal;text-align:center;width:max-content;max-width:200px;padding:.4rem .7rem;border-radius:6px;border:1px solid rgba(4,209,255,0.2);pointer-events:none;opacity:0;transition:opacity .15s .1s;z-index:300;}
+[data-tooltip]::after{content:'';position:absolute;bottom:calc(100% + 2px);left:50%;transform:translateX(-50%);border:5px solid transparent;border-top-color:var(--ts-dark);pointer-events:none;opacity:0;transition:opacity .15s .1s;z-index:300;}
+[data-tooltip]:hover::before,[data-tooltip]:hover::after{opacity:1;}
+
+/* RESPONSIVE */
+@media(max-width:900px){.progress-sidebar{display:none;}}
+@media(max-width:640px){
+  .phase-step:not(:last-child)::after{display:none;}
+  nav .nav-links{display:none;}
+  .nav-role-indicator{display:none!important;}
+  .hero{padding:3.5rem 1.5rem 3rem;}
+  .section{padding:3rem 1.5rem;}
+}
+
+/* ── ITEM 2: Role btn active state & helper text ── */
+.role-btn.active{background:var(--ts-cyan);color:var(--ts-dark);border-color:var(--ts-cyan);font-weight:700;}
+.role-helper-text{font-size:.78rem;color:rgba(255,255,255,0.4);margin-top:.9rem;text-align:center;}
+
+/* ── ITEM 3: Role dim (more obvious) ── */
+.role-dim{opacity:0.3!important;filter:grayscale(0.5)!important;transition:opacity .3s,filter .3s;}
+.role-banner{background:rgba(4,209,255,0.1);border-bottom:1px solid rgba(4,209,255,0.2);padding:.55rem 2rem;font-size:.8rem;color:var(--ts-cyan);text-align:center;display:none;}
+.role-banner.visible{display:block;}
+
+/* ── ITEM 4: Active nav state ── */
+.nav-links a.active{color:var(--ts-cyan);}
+
+/* ── ITEM 5: Build sub-nav ── */
+.build-subnav{display:flex;flex-wrap:wrap;gap:.5rem;margin:1.2rem 0 2rem;padding:0;}
+.build-subnav a{display:inline-flex;align-items:center;gap:.35rem;text-decoration:none;padding:.38rem .85rem;border-radius:999px;border:1.5px solid var(--ts-border);font-size:.78rem;font-weight:600;color:var(--ts-gray);background:#fff;white-space:nowrap;transition:all .15s;}
+.build-subnav a:hover{border-color:var(--ts-blue);color:var(--ts-blue);background:var(--ts-light);}
+.build-subnav a.active{border-color:var(--ts-blue);background:var(--ts-blue);color:#fff;}
+
+/* ── ITEM 6: Back to top button ── */
+#backToTop{position:fixed;bottom:2rem;right:2rem;z-index:200;background:var(--ts-dark);color:var(--ts-cyan);border:1.5px solid var(--ts-cyan);border-radius:999px;padding:.45rem .9rem;font-family:inherit;font-size:.8rem;font-weight:700;cursor:pointer;opacity:0;transition:opacity .2s;pointer-events:none;}
+#backToTop.visible{opacity:1;pointer-events:auto;}
+
+/* ── ITEM 7: Start here badge & pulse ── */
+.start-here-phase{display:inline-block;background:var(--ts-cyan);color:var(--ts-dark);font-size:.68rem;font-weight:800;padding:.2rem .65rem;border-radius:999px;margin-top:.4rem;text-transform:uppercase;letter-spacing:.05em;animation:phasePulse 2.2s ease-in-out infinite;}
+@keyframes phasePulse{0%,100%{box-shadow:0 0 0 0 rgba(4,209,255,0.5);}50%{box-shadow:0 0 0 6px rgba(4,209,255,0);}}
+
+/* ── ITEM 8: Prereq block ── */
+.prereq-outer{background:var(--ts-dark);padding:1rem 2rem 2.5rem;}
+.prereq-block{background:rgba(109,210,87,0.05);border:1px solid rgba(109,210,87,0.22);border-radius:14px;padding:1.8rem 2rem;max-width:960px;margin:0 auto;}
+.prereq-title{font-weight:800;font-size:.74rem;text-transform:uppercase;letter-spacing:.1em;color:var(--ts-green);margin-bottom:1.3rem;display:flex;align-items:center;gap:.45rem;}
+.prereq-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:.8rem;}
+.prereq-item{display:flex;align-items:flex-start;gap:.8rem;background:rgba(255,255,255,0.04);border:1px solid rgba(109,210,87,0.13);border-radius:9px;padding:.85rem 1rem;font-size:.85rem;color:rgba(255,255,255,0.82);line-height:1.5;}
+.prereq-check{min-width:22px;height:22px;background:rgba(109,210,87,0.18);border:1.5px solid rgba(109,210,87,0.5);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:800;color:var(--ts-green);flex-shrink:0;margin-top:.05rem;}
+.prereq-note{font-size:.76rem;color:rgba(255,255,255,0.38);display:block;margin-top:.2rem;}
+
+/* ── ITEM 9: Architecture diagram ── */
+.arch-diagram{display:flex;align-items:center;gap:.5rem;margin:1.5rem 0;flex-wrap:wrap;justify-content:center;background:rgba(52,109,201,0.04);border:1px solid var(--ts-border);border-radius:10px;padding:1.5rem;}
+.arch-node{background:var(--ts-dark);color:#fff;border-radius:8px;padding:.7rem 1rem;text-align:center;font-weight:700;font-size:.82rem;min-width:90px;}
+.arch-node span{font-weight:400;color:var(--ts-cyan);font-size:.72rem;display:block;}
+.arch-arrow{font-size:.72rem;color:var(--ts-gray);text-align:center;flex-shrink:0;}
+
+/* ── ITEM 10: Copy buttons ── */
+.code-wrap{position:relative;}
+.copy-btn{position:absolute;top:.5rem;right:.5rem;background:rgba(4,209,255,0.15);border:1px solid rgba(4,209,255,0.3);color:var(--ts-cyan);border-radius:5px;padding:.2rem .55rem;font-size:.7rem;font-weight:700;cursor:pointer;font-family:inherit;transition:all .15s;}
+.copy-btn:hover{background:rgba(4,209,255,0.25);}
+.copy-btn.copied{background:var(--ts-green);color:var(--ts-dark);border-color:var(--ts-green);}
+
+/* ── ITEM 14: Checklist actions & toast ── */
+.checklist-actions{display:flex;gap:1rem;margin-top:1.5rem;flex-wrap:wrap;}
+#toast{position:fixed;bottom:5rem;left:50%;transform:translateX(-50%);background:var(--ts-dark);color:#fff;border:1px solid rgba(4,209,255,0.3);border-radius:8px;padding:.6rem 1.4rem;font-size:.84rem;font-weight:600;z-index:500;opacity:0;pointer-events:none;transition:opacity .25s;}
+#toast.show{opacity:1;}
+
+/* ── ITEM 15: Glossary drawer ── */
+#glossaryBtn{position:fixed;bottom:2rem;left:2rem;z-index:200;background:var(--ts-dark);color:rgba(255,255,255,0.7);border:1.5px solid rgba(4,209,255,0.3);border-radius:999px;padding:.45rem 1rem;font-family:inherit;font-size:.8rem;font-weight:600;cursor:pointer;}
+#glossaryDrawer{position:fixed;left:0;top:0;height:100%;width:340px;max-width:90vw;background:#0d1020;border-right:1px solid rgba(4,209,255,0.2);z-index:300;transform:translateX(-100%);transition:transform .25s;overflow-y:auto;padding:1.5rem;}
+#glossaryDrawer.open{transform:translateX(0);}
+.glossary-drawer-header{display:flex;align-items:center;gap:.6rem;margin-bottom:1.2rem;flex-wrap:wrap;}
+.glossary-drawer-header span{font-weight:800;color:#fff;font-size:1rem;flex:1;}
+#glossarySearch{flex:1;min-width:120px;background:rgba(255,255,255,0.07);border:1px solid rgba(4,209,255,0.2);border-radius:6px;padding:.35rem .7rem;color:#fff;font-family:inherit;font-size:.8rem;}
+#glossarySearch::placeholder{color:rgba(255,255,255,0.35);}
+.glossary-drawer-header button{background:none;border:none;color:rgba(255,255,255,0.5);font-size:1rem;cursor:pointer;padding:.2rem;}
+.glossary-drawer-header button:hover{color:#fff;}
+.glossary-drawer-body{}
+.glossary-drawer-term{border-bottom:1px solid rgba(255,255,255,0.07);padding:.7rem 0;}
+.glossary-drawer-term dt{font-weight:700;font-size:.87rem;color:var(--ts-cyan);margin-bottom:.2rem;}
+.glossary-drawer-term dd{font-size:.79rem;color:rgba(255,255,255,0.55);line-height:1.5;}
+#glossaryOverlay{position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:299;display:none;}
+#glossaryOverlay.visible{display:block;}
+
+/* ── ITEM 17: Callout variants ── */
+.callout{background:rgba(52,109,201,0.07);border-left:3px solid var(--ts-blue);border-radius:0 var(--radius) var(--radius) 0;padding:1.1rem 1.4rem;margin:1.5rem 0;font-size:.9rem;color:var(--ts-navy);line-height:1.6;}
+.callout.warn,.callout.warning{background:rgba(255,192,82,0.1);border-left:3px solid var(--ts-yellow);color:var(--ts-navy);}
+.callout.success{background:rgba(109,210,87,0.08);border-left:3px solid var(--ts-green);color:var(--ts-navy);}
+.callout.critical{background:rgba(255,146,168,0.1);border-left:3px solid var(--ts-red);color:var(--ts-navy);}
+
+/* ── ITEM 22: Card min-height & start-here-badge ── */
+.card{min-height:160px;}
+.start-here-badge{display:inline-block;background:var(--ts-cyan);color:var(--ts-dark);font-size:.65rem;font-weight:800;padding:.15rem .5rem;border-radius:999px;text-transform:uppercase;letter-spacing:.05em;margin-bottom:.3rem;}
+footer { background:var(--ts-dark); color:rgba(255,255,255,0.4); text-align:center; padding:2.5rem 2rem; font-size:0.82rem; border-top:1px solid rgba(4,209,255,0.1); margin-top:0; }
+footer .footer-title { font-weight:600; color:#fff; font-size:0.9rem; margin-bottom:0.3rem; }
+footer .footer-sub { font-size:0.77rem; margin-bottom:0.4rem; }
+footer a { color:var(--ts-cyan); text-decoration:none; }
+footer a:hover { text-decoration:underline; }
+footer .footer-links { display:flex; flex-wrap:wrap; gap:1.2rem; justify-content:center; margin-top:0.8rem; }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a class="nav-brand" href="#">
+    <span>ThoughtSpot Embedded</span>
+    <span class="dot">·</span>
+    <span style="font-weight:400;color:rgba(255,255,255,0.5)">SpotGuide</span>
+  </a>
+  <ul class="nav-links">
+    <li><a href="#align">Align</a></li>
+    <li><a href="#foundation">Foundation</a></li>
+    <li><a href="#build">Build</a></li>
+    <li><a href="#validate">Validate</a></li>
+    <li><a href="#launch">Launch</a></li>
+    <li><a href="#resources">Resources</a></li>
+  </ul>
+  <div class="nav-role-indicator" id="navRoleIndicator">
+    Viewing as: <strong id="navRoleLabel"></strong>
+    <button class="nav-role-change" onclick="resetRole()" data-tooltip="Clear role filter and show all content">· Change</button>
+  </div>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-badge">ThoughtSpot Embedded · SpotGuide</div>
+  <h1>Deliver <em>embedded experiences</em> to your customers</h1>
+  <p>Everything your product, engineering, and data teams need — SDK setup, authentication, architecture, security, and CI/CD — from kickoff to production in one place.</p>
+  <div class="hero-ctas">
+    <a href="#align" class="btn btn-primary" style="font-size:1rem;padding:.85rem 2rem;" data-tooltip="Jump to Step 01 — define your MVP scope and team">👉 Start with Step 01: Align →</a>
+    <div style="display:flex;flex-wrap:wrap;gap:.7rem;justify-content:center;margin-top:.7rem;">
+      <a href="https://try-everywhere.thoughtspot.cloud/v2/#/everywhere/playground/search" target="_blank" rel="noopener noreferrer" class="btn btn-outline" style="font-size:.82rem;" data-tooltip="Experiment with embed components interactively">🔬 Open Playground</a>
+      <a href="https://developers.thoughtspot.com/docs/getting-started" target="_blank" rel="noopener noreferrer" class="btn btn-outline" style="font-size:.82rem;" data-tooltip="Step-by-step SDK installation quickstart">📖 SDK Quickstart</a>
+      <a href="https://developers.thoughtspot.com/docs/rest-apiv2-getstarted" target="_blank" rel="noopener noreferrer" class="btn btn-outline" style="font-size:.82rem;" data-tooltip="Explore REST API v2.0 endpoints">⚡ REST API v2.0</a>
+      <a href="#resources" class="btn btn-outline" style="font-size:.82rem;" data-tooltip="Docs, tools, training, and community links">📚 Resources</a>
+    </div>
+  </div>
+</div>
+
+<!-- PREREQ BLOCK (item 8) -->
+<div class="prereq-outer">
+  <div class="prereq-block">
+    <div class="prereq-title">✦ Before you begin</div>
+    <div class="prereq-grid">
+      <div class="prereq-item"><span class="prereq-check">✓</span><span>You have a provisioned ThoughtSpot cluster<span class="prereq-note">Confirm with your CSM if unsure</span></span></div>
+      <div class="prereq-item"><span class="prereq-check">✓</span><span>You have admin access to your ThoughtSpot instance</span></div>
+      <div class="prereq-item"><span class="prereq-check">✓</span><span>You have access to your Cloud Data Warehouse credentials</span></div>
+      <div class="prereq-item"><span class="prereq-check">✓</span><span>Your app domain is known<span class="prereq-note">Required for CSP / CORS allowlist setup</span></span></div>
+    </div>
+  </div>
+</div>
+
+<!-- TIMELINE -->
+<div class="timeline-section">
+  <div class="timeline-label">Recommended rollout · 8–10 weeks</div>
+  <div class="timeline">
+    <a class="phase-step" href="#align" title="Define MVP scope, success metrics, and team responsibilities">
+      <div class="phase-num">01</div>
+      <div class="phase-name">Align</div>
+      <div class="phase-weeks">Week 1</div>
+      <div class="start-here-phase">Start here →</div>
+    </a>
+    <a class="phase-step" href="#foundation" title="Data connectivity, auth approach, CSP/CORS, and semantic model">
+      <div class="phase-num">02</div>
+      <div class="phase-name">Foundation</div>
+      <div class="phase-weeks">Week 1–2</div>
+    </a>
+    <a class="phase-step" href="#build" title="SDK integration, embed components, events, and customization">
+      <div class="phase-num">03</div>
+      <div class="phase-name">Build</div>
+      <div class="phase-weeks">Week 2–6</div>
+    </a>
+    <a class="phase-step" href="#validate" title="UAT, performance, security hardening, and troubleshooting">
+      <div class="phase-num">04</div>
+      <div class="phase-name">Validate</div>
+      <div class="phase-weeks">Week 6–8</div>
+    </a>
+    <a class="phase-step" href="#launch" title="Production rollout, CI/CD pipeline, and adoption planning">
+      <div class="phase-num">05</div>
+      <div class="phase-name">Launch</div>
+      <div class="phase-weeks">Week 8–10</div>
+    </a>
+  </div>
+</div>
+
+<!-- ROLE BANNER (item 3) -->
+<div class="role-banner" id="roleBanner"></div>
+
+<!-- ROLE SELECTOR -->
+<div class="role-selector-wrap">
+  <div class="role-selector-label">Personalise this guide for your role</div>
+  <div class="role-btns">
+    <button class="role-btn active" data-role="general" onclick="setRole('general',this)" data-tooltip="Show all content — no filter applied">🌐 General</button>
+    <button class="role-btn" data-role="engineering" onclick="setRole('engineering',this)" data-tooltip="Focus on SDK, authentication, events, and CI/CD">🏗️ Engineering</button>
+    <button class="role-btn" data-role="product" onclick="setRole('product',this)" data-tooltip="Focus on embed patterns, content strategy, and adoption">🗂️ Product</button>
+    <button class="role-btn" data-role="data" onclick="setRole('data',this)" data-tooltip="Focus on semantic modelling, TML, RLS, and CLS">🔬 Data / Analytics</button>
+    <button class="role-btn" data-role="admin" onclick="setRole('admin',this)" data-tooltip="Focus on CSP/CORS, groups, security, and operations">🔧 Admin / IT</button>
+  </div>
+  <p class="role-helper-text">Select your role to highlight what's most relevant for you.</p>
+</div>
+
+<!-- ═══════════════════════════════════════
+     PHASE 01 — ALIGN
+════════════════════════════════════════ -->
+<div style="background:var(--ts-light);border-top:3px solid var(--ts-border);">
+<section class="section" id="align">
+  <div class="phase-meta">
+    <span>⏱ Week 1</span>
+    <span>👥 All roles</span>
+    <span>📌 Define MVP scope, embed pattern, and who owns what</span>
+    <span>⚡ ~2–4 hours of team alignment</span>
+  </div>
+  <h2 class="section-title section-title--phase">01 — Align</h2>
+  <p class="section-sub">Before writing a single line of code, align your team on why you're embedding, what you'll embed first, and who is responsible for each layer.</p>
+
+  <!-- WHY EMBED -->
+  <div class="subsection-title">Why embed analytics?</div>
+  <p class="subsection-sub">Embedded analytics brings insights into the place your users already work — your product — making analytics part of the workflow rather than a separate destination.</p>
+  <div class="table-wrap">
+    <table class="dt">
+      <thead><tr><th>Business outcome</th><th>What users experience</th><th>So what?</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Higher adoption</strong></td><td>Analytics is one click away inside your app</td><td>Reduce friction, increase usage without habit change</td></tr>
+        <tr><td><strong>Faster decisions</strong></td><td>Users ask and answer questions without tickets</td><td>Less backlog for your data team</td></tr>
+        <tr><td><strong>Scalable governance</strong></td><td>Central semantic layer + permissions</td><td>Add users safely without permissions chaos</td></tr>
+        <tr><td><strong>Differentiated product</strong></td><td>Analytics feels native and branded</td><td>Compete on experience, not just charts</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- EMBED PATTERNS -->
+  <div class="subsection-title">Choose your embed pattern</div>
+  <p class="subsection-sub">Pick the pattern that matches your desired UX control and engineering capacity. You can start focused and expand later.</p>
+  <div class="pattern-grid">
+    <div class="card pattern-card recommended" data-role="product">
+      <div class="pattern-use">Focused Embed</div>
+      <div class="pattern-title">Liveboard · Viz · Spotter</div>
+      <div class="pattern-desc">Embed specific Liveboards, visualizations, or Spotter inside your existing app pages or workflow screens.</div>
+      <div style="font-size:.77rem;font-weight:700;color:var(--ts-gray);text-transform:uppercase;letter-spacing:.05em;margin-bottom:.3rem;">Strengths</div>
+      <ul class="pattern-list pros">
+        <li>Fast to ship — great 30–60 day MVP</li>
+        <li>Feels fully native in your product</li>
+        <li>Minimal engineering surface area</li>
+      </ul>
+      <div style="font-size:.77rem;font-weight:700;color:var(--ts-gray);text-transform:uppercase;letter-spacing:.05em;margin:.6rem 0 .3rem;">Trade-offs</div>
+      <ul class="pattern-list cons">
+        <li>Less self-service exploration for power users</li>
+      </ul>
+    </div>
+    <div class="card pattern-card" data-role="product">
+      <div class="pattern-use">Full App Embed</div>
+      <div class="pattern-title">Full ThoughtSpot App</div>
+      <div class="pattern-desc">Embed the complete ThoughtSpot application inside your product — users get full analytics capability immediately.</div>
+      <div style="font-size:.77rem;font-weight:700;color:var(--ts-gray);text-transform:uppercase;letter-spacing:.05em;margin-bottom:.3rem;">Strengths</div>
+      <ul class="pattern-list pros">
+        <li>Maximum capability, fastest to broad access</li>
+        <li>Best for internal analytics portals</li>
+      </ul>
+      <div style="font-size:.77rem;font-weight:700;color:var(--ts-gray);text-transform:uppercase;letter-spacing:.05em;margin:.6rem 0 .3rem;">Trade-offs</div>
+      <ul class="pattern-list cons">
+        <li>More ThoughtSpot-native UX, less brand control</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="callout">
+    <strong>Decision rubric</strong>
+    Ask: Are users casual consumers or analysts? Must analytics feel 100% native? Do you need a 30–60 day MVP? Do you require strict tenant isolation?<br>→ <strong>Start Focused</strong> for speed and a clean, controlled UX. <strong>Full App Embed</strong> if users need maximum capability out of the box — but factor in the added complexity of managing custom actions and navigation.
+  </div>
+
+  <!-- TEAM ROLES -->
+  <div class="subsection-title">Who does what</div>
+  <p class="subsection-sub">Embedded analytics succeeds when product, engineering, and data teams run in parallel. Align ownership before you build.</p>
+  <div class="roles-grid">
+    <div class="role-card">
+      <div class="role-card-title">🗂️ Product</div>
+      <ul>
+        <li>Define use cases and user personas</li>
+        <li>Set MVP scope and success metrics</li>
+        <li>Own wireframes and adoption targets</li>
+        <li>Prioritise Liveboard content roadmap</li>
+      </ul>
+    </div>
+    <div class="role-card">
+      <div class="role-card-title">🏗️ Engineering</div>
+      <ul>
+        <li>SDK integration + auth service</li>
+        <li>Reusable embed component</li>
+        <li>CI/CD deployment pipeline</li>
+        <li>Runtime filter + event handling</li>
+      </ul>
+    </div>
+    <div class="role-card">
+      <div class="role-card-title">🔬 Data / Analytics</div>
+      <ul>
+        <li>Semantic model (Model / TML)</li>
+        <li>RLS rules and CLS tagging</li>
+        <li>Liveboard and Answer creation</li>
+        <li>Data quality validation</li>
+      </ul>
+    </div>
+    <div class="role-card">
+      <div class="role-card-title">🔧 Admin / IT</div>
+      <ul>
+        <li>User groups and permissions</li>
+        <li>CSP and CORS allowlists</li>
+        <li>Identity/IdP configuration</li>
+        <li>Deprovisioning workflow</li>
+      </ul>
+    </div>
+  </div>
+
+</section>
+</div>
+
+
+<!-- ═══════════════════════════════════════
+     PHASE 02 — FOUNDATION
+════════════════════════════════════════ -->
+<div style="background:#fff;border-top:3px solid var(--ts-border);">
+<section class="section" id="foundation">
+  <div class="phase-meta">
+    <span>⏱ Week 1–2</span>
+    <span>🔧 Admin / IT · 🔬 Data</span>
+    <span>📌 Data connectivity, security architecture, CSP/CORS, auth approach</span>
+    <span>⚡ ~2–3 days of engineering + data setup</span>
+  </div>
+  <h2 class="section-title section-title--phase">02 — Foundation</h2>
+  <p class="section-sub">Establish the technical building blocks before a single embed is rendered. Rushing this phase is the #1 cause of painful late-stage bugs.</p>
+
+  <!-- OBJECT ID WARNING -->
+  <div style="background:rgba(255,192,82,0.1);border:1.5px solid #FFC052;border-radius:8px;padding:.75rem 1.1rem;font-size:.83rem;color:#1B3E61;margin-bottom:1.5rem;"><strong style="color:#1B3E61;">⚠️ Enable Object IDs before you build.</strong> Object IDs are required for environment migration (Dev → QA → Prod) and any CI/CD workflow. Once content is created without them, retrofitting is painful. Raise a support ticket to have Object IDs enabled on your cluster <em>before</em> your team starts creating Models, Liveboards, or Answers.</div>
+
+  <!-- CDW CONNECTION -->
+  <div class="subsection-title">Connect your Cloud Data Warehouse</div>
+  <p class="subsection-sub">ThoughtSpot connects live to your CDW. Start with one "golden" dataset for the MVP — model for analytics (star schema) rather than mirroring OLTP complexity.</p>
+  <div class="cdw-tabs" id="cdwTabs">
+    <button class="cdw-tab active" onclick="switchCDW('snowflake',this)" data-tooltip="Show Snowflake connection steps">Snowflake</button>
+    <button class="cdw-tab" onclick="switchCDW('bigquery',this)" data-tooltip="Show BigQuery connection steps">BigQuery</button>
+    <button class="cdw-tab" onclick="switchCDW('redshift',this)" data-tooltip="Show Redshift connection steps">Redshift</button>
+    <button class="cdw-tab" onclick="switchCDW('databricks',this)" data-tooltip="Show Databricks connection steps">Databricks</button>
+  </div>
+  <div id="cdw-snowflake" class="cdw-tab-content active">
+    <div class="cdw-steps">
+      <div class="cdw-step"><div class="cdw-step-num">1</div><div class="cdw-step-body"><p>Create a dedicated service role: <code>CREATE ROLE thoughtspot_role;</code></p></div></div>
+      <div class="cdw-step"><div class="cdw-step-num">2</div><div class="cdw-step-body"><p>Grant <code>USAGE</code> on warehouse, database, and schema, plus <code>SELECT</code> on the target tables/schema to the service role. Also grant future table privileges so new tables are automatically accessible.</p></div></div>
+      <div class="cdw-step"><div class="cdw-step-num">3</div><div class="cdw-step-body"><p>Create a service user and assign the role: <code>CREATE USER thoughtspot_svc DEFAULT_ROLE = thoughtspot_role;</code></p></div></div>
+      <div class="cdw-step"><div class="cdw-step-num">4</div><div class="cdw-step-body"><p>Use username/password or key-pair auth in ThoughtSpot. Set <code>DEFAULT_WAREHOUSE</code> on the service user to avoid connection errors.</p></div></div>
+      <div class="cdw-step"><div class="cdw-step-num">5</div><div class="cdw-step-body"><p>Allowlist ThoughtSpot's IP ranges in your Snowflake network policy. → <a href="https://docs.thoughtspot.com/cloud/latest/connections-snowflake" target="_blank" rel="noopener noreferrer" style="color:var(--ts-blue)">Snowflake connection docs</a></p></div></div>
+    </div>
+  </div>
+  <div id="cdw-bigquery" class="cdw-tab-content">
+    <div class="cdw-steps">
+      <div class="cdw-step"><div class="cdw-step-num">1</div><div class="cdw-step-body"><p>Create a dedicated GCP Service Account in IAM (e.g. <code>thoughtspot-svc@your-project.iam.gserviceaccount.com</code>).</p></div></div>
+      <div class="cdw-step"><div class="cdw-step-num">2</div><div class="cdw-step-body"><p>Grant <code>BigQuery Data Viewer</code> + <code>BigQuery Job User</code> roles to the service account.</p></div></div>
+      <div class="cdw-step"><div class="cdw-step-num">3</div><div class="cdw-step-body"><p>Download the JSON key: IAM → Service Accounts → Keys → Add Key → JSON.</p></div></div>
+      <div class="cdw-step"><div class="cdw-step-num">4</div><div class="cdw-step-body"><p>In ThoughtSpot: upload the JSON key. BigQuery connections are project-scoped — ensure the service account has access to the correct project.</p></div></div>
+      <div class="cdw-step"><div class="cdw-step-num">5</div><div class="cdw-step-body"><p>→ <a href="https://docs.thoughtspot.com/cloud/26.11.0.cl/connections-gbq-add" target="_blank" rel="noopener noreferrer" style="color:var(--ts-blue)">BigQuery connection docs</a></p></div></div>
+    </div>
+  </div>
+  <div id="cdw-redshift" class="cdw-tab-content">
+    <div class="cdw-steps">
+      <div class="cdw-step"><div class="cdw-step-num">1</div><div class="cdw-step-body"><p>Create a dedicated DB user (e.g. <code>thoughtspot_svc</code>) with a strong password, and grant <code>SELECT</code> on the target schema and tables.</p></div></div>
+      <div class="cdw-step"><div class="cdw-step-num">2</div><div class="cdw-step-body"><p>Add ThoughtSpot's IP ranges to your Redshift security group inbound rules (port 5439).</p></div></div>
+      <div class="cdw-step"><div class="cdw-step-num">3</div><div class="cdw-step-body"><p>Use native auth (username/password). IAM auth is not currently supported by ThoughtSpot.</p></div></div>
+      <div class="cdw-step"><div class="cdw-step-num">4</div><div class="cdw-step-body"><p>For Redshift Serverless: use the serverless endpoint URL format <code>workgroup.account.region.redshift-serverless.amazonaws.com</code>.</p></div></div>
+      <div class="cdw-step"><div class="cdw-step-num">5</div><div class="cdw-step-body"><p>→ <a href="https://docs.thoughtspot.com/cloud/latest/connections-redshift" target="_blank" rel="noopener noreferrer" style="color:var(--ts-blue)">Redshift connection docs</a></p></div></div>
+    </div>
+  </div>
+  <div id="cdw-databricks" class="cdw-tab-content">
+    <div class="cdw-steps">
+      <div class="cdw-step"><div class="cdw-step-num">1</div><div class="cdw-step-body"><p>Generate a personal access token in Databricks (User Settings → Developer → Access Tokens) or use service principal OAuth for production.</p></div></div>
+      <div class="cdw-step"><div class="cdw-step-num">2</div><div class="cdw-step-body"><p>Use the <strong>SQL Warehouse HTTP path</strong> (not an all-purpose cluster). Find it: SQL Warehouses → your warehouse → Connection Details.</p></div></div>
+      <div class="cdw-step"><div class="cdw-step-num">3</div><div class="cdw-step-body"><p>Ensure the token/principal has <code>CAN USE</code> permission on the target SQL Warehouse.</p></div></div>
+      <div class="cdw-step"><div class="cdw-step-num">4</div><div class="cdw-step-body"><p>Grant <code>SELECT</code> on the target catalog/schema to the service principal.</p></div></div>
+      <div class="cdw-step"><div class="cdw-step-num">5</div><div class="cdw-step-body"><p>→ <a href="https://docs.thoughtspot.com/cloud/latest/connections-databricks" target="_blank" rel="noopener noreferrer" style="color:var(--ts-blue)">Databricks connection docs</a></p></div></div>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- SEMANTIC LAYER -->
+  <div class="subsection-title">Build the semantic layer (Model)</div>
+  <p class="subsection-sub">The semantic layer is not optional — it is what makes ThoughtSpot Search and AI work reliably for your users. It turns raw tables into a trusted, business-friendly analytics surface.</p>
+  <div class="callout warn">
+    <strong>⚠ Don't skip this step</strong>
+    A Model without business-friendly column names, synonyms, and correct aggregations will produce poor search results and confuse users. Invest here upfront — it pays dividends in every embed you ship.
+  </div>
+  <div class="step-list" style="max-width:750px;">
+    <div class="step"><div class="step-num">1</div><div class="step-content"><h4>Join tables and model in a Model (TML)</h4><p>Use a star schema where possible. Avoid mirroring OLTP complexity. Define your joins in ThoughtSpot's semantic layer, not in SQL.</p></div></div>
+    <div class="step"><div class="step-num">2</div><div class="step-content"><h4>Use business-friendly column names</h4><p>Rename <code>ord_rev_usd</code> → <code>Revenue</code>. Users search in natural language — your column names are the vocabulary.</p></div></div>
+    <div class="step"><div class="step-num">3</div><div class="step-content"><h4>Define synonyms for common terms</h4><p>Add synonyms: "sales" → Revenue, "client" → Customer. The more synonyms, the better search results Spotter delivers.</p></div></div>
+    <div class="step"><div class="step-num">4</div><div class="step-content"><h4>Configure default aggregations</h4><p>Set SUM on measures (Revenue, Quantity), COUNT on IDs. Wrong defaults cause misleading AI answers.</p></div></div>
+    <div class="step"><div class="step-num">5</div><div class="step-content"><h4>Tag sensitive columns for CLS</h4><p>Apply Column-Level Security tags to PII, cost, salary, and margin columns. Restrict via group-based permissions.</p></div></div>
+    <div class="step"><div class="step-num">6</div><div class="step-content"><h4>Test end-to-end with real questions</h4><p>Before embedding, ask 5–10 representative business questions in the Playground. Fix any surprising results before users see them.</p></div></div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- CSP / CORS -->
+  <div class="subsection-title">Configure CSP and CORS allowlists</div>
+  <p class="subsection-sub">Before any embed renders, your application domain must be registered in ThoughtSpot. This is the most common cause of blank iFrames.</p>
+  <div class="callout critical">
+    <strong>🚨 Do this before any embed code</strong>
+    Navigate to <strong>Develop → Customizations → Security Settings</strong> in your ThoughtSpot instance. Both CSP Visual Embed Hosts and CORS allowlist must include your app domain. Without this, every embed renders as a blank box.
+  </div>
+  <div class="card-grid" style="max-width:900px;">
+    <div class="card" data-role="admin">
+      <div class="card-tag tag-admin">CSP</div>
+      <h3>Visual Embed Hosts</h3>
+      <p>Add your app's domain (e.g. <code>https://app.yourcompany.com</code>) to the CSP allowlist. This permits ThoughtSpot to be framed in your app. Scope as tightly as possible — avoid wildcards in production.</p>
+    </div>
+    <div class="card" data-role="admin">
+      <div class="card-tag tag-admin">CORS</div>
+      <h3>CORS Allowlist</h3>
+      <p>Add the same domain to the CORS allowlist so your frontend can make REST API calls. Use <code>.*</code> patterns to match subdomains where needed. → <a href="https://developers.thoughtspot.com/docs/security-settings#cors" target="_blank" rel="noopener noreferrer" style="color:var(--ts-blue)">CORS docs</a></p>
+    </div>
+    <div class="card" data-role="admin">
+      <div class="card-tag tag-admin">Validation</div>
+      <h3>Test in non-prod first</h3>
+      <p>Add your staging/dev domain first, validate fully, then add production. Check the browser console for <code>Refused to frame</code> or CORS errors after each change.</p>
+    </div>
+  </div>
+
+</section>
+</div>
+
+<!-- ═══════════════════════════════════════
+     PHASE 03 — BUILD
+════════════════════════════════════════ -->
+<div style="background:var(--ts-light);border-top:3px solid var(--ts-border);">
+<section class="section" id="build">
+  <div class="phase-meta">
+    <span>⏱ Week 2–6</span>
+    <span>🏗️ Engineering · 🔬 Data</span>
+    <span>📌 SDK setup, authentication, embed components, events, and customization</span>
+    <span>⚡ ~4–5 weeks of iterative development</span>
+  </div>
+  <h2 class="section-title section-title--phase">03 — Build</h2>
+  <p class="section-sub">Install the SDK, wire up authentication, build reusable embed components, and customize the look and feel to match your product.</p>
+  <div class="build-subnav" id="buildSubnav">
+    <a href="#build-sdk">⚙️ Install SDK</a>
+    <a href="#build-auth">🔐 Authentication</a>
+    <a href="#build-component">🧩 Reusable Component</a>
+    <a href="#build-spotter">🤖 Spotter AI</a>
+    <a href="#build-styling">🎨 Styling &amp; Branding</a>
+  </div>
+
+  <!-- SDK SETUP -->
+  <div class="subsection-title" id="build-sdk">Install the Visual Embed SDK</div>
+  <div class="callout">
+    <strong>Tip: Start in the Developer Playground first</strong>
+    Before writing application code, use <strong>Develop → Playground</strong> in your ThoughtSpot instance (<code>https://&lt;clustername&gt;.thoughtspot.cloud/#/develop/playground/search</code>) to experiment with embed components, generate code snippets, and validate auth — without touching your app.
+  </div>
+  <div class="callout">
+    <strong>Installation</strong>
+    Run <code>npm install @thoughtspot/visual-embed-sdk</code> in your project, or load the ES Module CDN bundle for non-module environments — no build tooling required. Include <code>callPrefetch: true</code> in your <code>init()</code> call to prefetch resources and reduce first-render latency. → <a href="https://developers.thoughtspot.com/docs/getting-started" target="_blank" rel="noopener noreferrer" style="color:var(--ts-blue)">Full SDK Quickstart docs</a>
+  </div>
+
+  <!-- SDK COMPONENTS -->
+  <div class="subsection-title">SDK component types</div>
+  <div class="sdk-grid">
+    <div class="sdk-comp"><div class="sdk-class">LiveboardEmbed</div><div class="sdk-name">Liveboard</div><div class="sdk-desc">Embed a full interactive Liveboard</div></div>
+    <div class="sdk-comp"><div class="sdk-class">LiveboardEmbed + vizId</div><div class="sdk-name">Single Viz</div><div class="sdk-desc">Embed one chart or table from a Liveboard</div></div>
+    <div class="sdk-comp"><div class="sdk-class">SpotterEmbed</div><div class="sdk-name">Spotter ⭐</div><div class="sdk-desc">Embed the conversational AI analyst — recommended for natural language queries</div></div>
+    <div class="sdk-comp"><div class="sdk-class">SearchEmbed</div><div class="sdk-name">Search</div><div class="sdk-desc">Embed the structured search bar for direct data queries</div></div>
+    <div class="sdk-comp"><div class="sdk-class">AppEmbed</div><div class="sdk-name">Full App</div><div class="sdk-desc">Embed the complete ThoughtSpot application</div></div>
+  </div>
+
+  <div style="background:rgba(255,192,82,0.1);border:1.5px solid #FFC052;border-radius:8px;padding:.7rem 1.1rem;font-size:.83rem;color:#1B3E61;font-weight:600;margin-top:1.2rem;margin-bottom:0;">⚠️ <strong style="color:#1B3E61;">Keep your SDK version in sync with your ThoughtSpot cluster version.</strong> Mismatched versions are a leading cause of broken embeds and hidden action regressions after platform upgrades. Pin your version and schedule a quarterly review.</div>
+
+  <hr class="divider">
+
+  <!-- AUTHENTICATION -->
+  <div class="subsection-title" id="build-auth">Authentication: Trusted Auth (step-by-step)</div>
+  <p class="subsection-sub">Trusted Authentication is the recommended pattern for all embedded deployments. It uses a short-lived token exchange — no ThoughtSpot credentials are ever exposed to end users.</p>
+
+  <div class="auth-flow">
+    <div class="auth-row">
+      <div class="auth-dot app">APP</div>
+      <div class="auth-body"><h4>1. User logs into your application</h4><p>Your existing IdP/SSO authenticates the user. Your app now has a verified user identity (e.g. email).</p></div>
+    </div>
+    <div class="auth-row">
+      <div class="auth-dot app">APP</div>
+      <div class="auth-body"><h4>2. Frontend calls your backend token endpoint</h4><p>The SDK's <code>getAuthToken</code> callback fires. Your frontend requests a token from your own backend — never from ThoughtSpot directly.</p></div>
+    </div>
+    <div class="auth-row">
+      <div class="auth-dot back">SVC</div>
+      <div class="auth-body"><h4>3. Backend calls ThoughtSpot token API</h4><p>Your backend uses the <code>secret_key</code> (stored server-side only, never in client code) to call <code>POST /api/rest/2.0/auth/token/custom</code> and get a short-lived token.</p></div>
+    </div>
+    <div class="auth-row">
+      <div class="auth-dot ts">TS</div>
+      <div class="auth-body"><h4>4. ThoughtSpot returns a short-lived auth token</h4><p>Token TTL: 300–3600 seconds. The SDK automatically calls <code>getAuthToken</code> again on expiry — no manual refresh needed.</p></div>
+    </div>
+    <div class="auth-row">
+      <div class="auth-dot app">APP</div>
+      <div class="auth-body"><h4>5. SDK initialises the embedded session</h4><p>The token is passed into <code>init()</code> via <code>getAuthToken</code>. ThoughtSpot authenticates the session and the embed renders.</p></div>
+    </div>
+  </div>
+
+  <div class="arch-diagram">
+    <div class="arch-node">Your App<br><span>Frontend</span></div>
+    <div class="arch-arrow">getAuthToken<br>callback →</div>
+    <div class="arch-node">Your Backend<br><span>Token Service</span></div>
+    <div class="arch-arrow">POST /auth/<br>token/custom →</div>
+    <div class="arch-node">ThoughtSpot<br><span>API</span></div>
+    <div class="arch-arrow">short-lived<br>token →</div>
+    <div class="arch-node">Embedded<br><span>iFrame</span></div>
+  </div>
+
+  <div class="step-list" style="max-width:750px;margin-top:1.5rem;">
+    <div class="step"><div class="step-num">A</div><div class="step-content"><h4>Enable Trusted Auth in ThoughtSpot</h4><p>Navigate to <strong>Develop → Customizations → Security Settings</strong>. Enable Trusted Authentication and copy the <code>secret_key</code>. Store it in your backend secrets manager — never in client code or environment files committed to git.</p></div></div>
+    <div class="step"><div class="step-num">B</div><div class="step-content"><h4>Build a protected backend token endpoint</h4><p>Create a server-side endpoint (e.g. <code>POST /api/ts-token</code>) that receives your verified app user's identity, calls <code>POST /api/rest/2.0/auth/token/custom</code> with the <code>secret_key</code>, and returns only the token to the frontend. Set <code>auto_create: true</code> for Just-in-Time user provisioning. Recommended TTL: 300–3600 seconds.</p></div></div>
+    <div class="step"><div class="step-num">C</div><div class="step-content"><h4>Configure SDK <code>init()</code> on the frontend</h4><p>Call <code>init()</code> once per session before any embed renders. Set <code>authType</code> to <code>TrustedAuthTokenCookieless</code> and provide an async <code>getAuthToken</code> callback that calls your backend endpoint and returns the token string. Set <code>autoLogin: true</code> in production to ensure automatic token refreshes without user interruption — this is strongly recommended for cookieless auth deployments.</p></div></div>
+  </div>
+  <div class="callout warn">
+    <strong>⚠️ Token caching gotcha</strong>
+    Requesting a new token on <em>every</em> resource load will quickly hit API rate limits in production. Cache the token for the duration of its TTL (typically 5–15 minutes) and only refresh when it is close to expiry. Your <code>getAuthToken</code> callback should return the cached token unless it has expired.
+  </div>
+  <div class="callout">
+    <strong>Implementation reference</strong>
+    The <a href="https://developers.thoughtspot.com/docs/trusted-auth-sdk" target="_blank" rel="noopener noreferrer" style="color:var(--ts-blue)">Trusted Authentication docs</a> include complete server-side examples (Node.js, Python, Java) and the full list of token parameters including variable values and filter rules.
+  </div>
+
+  <div class="callout warn">
+    <strong>⚠ Always use TrustedAuthTokenCookieless in production</strong>
+    Cookie-based auth (<code>TrustedAuthToken</code>) breaks silently in modern browsers due to SameSite=Lax enforcement. Cookieless mode eliminates this dependency entirely and supports multiple concurrent sessions per browser.
+  </div>
+
+  <hr class="divider">
+
+  <!-- EMBEDDING IMPLEMENTATION -->
+  <div class="subsection-title" id="build-component">Build a reusable Analytics Component</div>
+  <p class="subsection-sub">Don't copy/paste embed code across pages. Build one parameterized component that handles initialization, auth, filters, events, and error states.</p>
+
+  <div class="callout critical">
+    <strong>🚨 iFrame-based architecture — embrace it</strong>
+    ThoughtSpot renders inside an iFrame. This is a feature: it provides a clean security boundary while allowing deep integration via events, filters, and styling. Plan for iFrame realities early: CSP, cookie policies, and cross-window messaging.
+  </div>
+
+  <div class="step-list" style="max-width:750px;">
+    <div class="step"><div class="step-num">1</div><div class="step-content"><h4>Accept parameters — never hardcode object IDs</h4><p>The component should accept <code>liveboardId</code>, <code>runtimeFilters</code>, and display config as inputs. This lets you reuse one component across every page with different content.</p></div></div>
+    <div class="step"><div class="step-num">2</div><div class="step-content"><h4>Apply runtime filters at render time</h4><p>Pass the current user's context (tenant ID, region, account) as runtime filter values scoping the Liveboard without rebuilding the content or creating per-user duplicates.</p></div></div>
+    <div class="step"><div class="step-num">3</div><div class="step-content"><h4>Configure hidden and disabled actions</h4><p>Remove default ThoughtSpot actions that don't belong in an embedded context — typically: Download, Share, Schedule, and Edit. Configure via the <code>hiddenActions</code> parameter.</p></div></div>
+    <div class="step"><div class="step-num">4</div><div class="step-content"><h4>Handle Load and Error events</h4><p>Subscribe to <code>EmbedEvent.Load</code> to measure time-to-first-render and drive UX transitions. Subscribe to <code>EmbedEvent.Error</code> to show a meaningful fallback state instead of a silent blank iFrame.</p></div></div>
+  </div>
+  <div style="background:linear-gradient(135deg,var(--ts-dark) 0%,#1a1060 60%,var(--ts-blurple) 100%);color:#fff;border-radius:16px;padding:2rem 2.2rem;margin:2rem 0;position:relative;overflow:hidden;">
+    <div style="content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 80% 20%,rgba(4,209,255,0.12) 0%,transparent 50%);pointer-events:none;"></div>
+    <div style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--ts-cyan);margin-bottom:.6rem;">⚡ AI-Powered Code Generation</div>
+    <h3 style="font-size:1.3rem;font-weight:800;color:#fff;margin-bottom:.5rem;">Fastest way to generate embed code: SpotterCode</h3>
+    <p style="color:rgba(255,255,255,0.65);font-size:.93rem;max-width:620px;margin-bottom:1.4rem;">SpotterCode connects Cursor, VS Code, or Claude Code directly to ThoughtSpot's SDK docs — your AI coding assistant can generate context-aware, deployment-ready embed code without leaving your editor.</p>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:.9rem;margin-bottom:1.4rem;">
+      <div style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:10px;padding:1rem;">
+        <div style="font-size:.85rem;font-weight:700;color:#fff;margin-bottom:.3rem;">🤖 AI-native IDEs</div>
+        <div style="font-size:.8rem;color:rgba(255,255,255,0.6);">Works with Cursor, VS Code + Copilot, and Claude Code</div>
+      </div>
+      <div style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:10px;padding:1rem;">
+        <div style="font-size:.85rem;font-weight:700;color:#fff;margin-bottom:.3rem;">📚 SDK-aware context</div>
+        <div style="font-size:.8rem;color:rgba(255,255,255,0.6);">Pulls live SDK docs, REST API specs, and code samples into your editor</div>
+      </div>
+      <div style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:10px;padding:1rem;">
+        <div style="font-size:.85rem;font-weight:700;color:#fff;margin-bottom:.3rem;">🚀 Zero config</div>
+        <div style="font-size:.8rem;color:rgba(255,255,255,0.6);">One MCP config line — no extra setup, no switching tabs</div>
+      </div>
+    </div>
+    <div style="display:flex;gap:.8rem;flex-wrap:wrap;">
+      <a href="https://developers.thoughtspot.com/docs/SpotterCode" target="_blank" rel="noopener noreferrer" style="display:inline-flex;align-items:center;gap:.4rem;background:var(--ts-cyan);color:var(--ts-dark);font-weight:700;font-size:.85rem;padding:.55rem 1.1rem;border-radius:8px;text-decoration:none;">SpotterCode docs →</a>
+      <a href="https://try-everywhere.thoughtspot.cloud/v2/#/everywhere/playground/search" target="_blank" rel="noopener noreferrer" style="display:inline-flex;align-items:center;gap:.4rem;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.25);color:#fff;font-weight:600;font-size:.85rem;padding:.55rem 1.1rem;border-radius:8px;text-decoration:none;">Developer Playground →</a>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- CUSTOM ACTIONS -->
+  <div class="subsection-title">Actions: hide, disable, and add your own</div>
+  <p class="subsection-sub">Control what users can do inside the embed. Suppress ThoughtSpot's default actions to keep the UX clean, or add your own custom actions that fire events back into your app.</p>
+  <div class="card-grid">
+    <div class="card" data-role="engineering">
+      <div class="card-tag tag-eng">Hidden Actions</div>
+      <h3>Suppress default TS actions</h3>
+      <p>Remove buttons like "Download", "Share", "Schedule", and "Edit" from the embedded context. Configure via <code>hiddenActions</code> or <code>disabledActions</code> in your embed component init. Validate after every SDK upgrade — hidden actions can reappear on platform updates. → <a href="https://developers.thoughtspot.com/docs/actions" target="_blank" rel="noopener noreferrer" style="color:var(--ts-blue)">Actions reference</a></p>
+    </div>
+    <div class="card" data-role="engineering">
+      <div class="card-tag tag-eng">Custom Actions</div>
+      <h3>Add your own buttons</h3>
+      <p>Register callback custom actions in <strong>Develop → Customizations → Custom Actions</strong>. They appear as menu items inside ThoughtSpot content and fire <code>EmbedEvent.CustomAction</code> with the data payload — handle the event in your app to connect analytics to any downstream workflow. Test across all relevant Liveboards and user personas. → <a href="https://developers.thoughtspot.com/docs/code-based-custom-action" target="_blank" rel="noopener noreferrer" style="color:var(--ts-blue)">Custom Actions docs</a></p>
+    </div>
+    <div class="card" data-role="product">
+      <div class="card-tag tag-prod">Strategy</div>
+      <h3>What actions to configure</h3>
+      <p>Think about what operational capabilities your users need alongside the data. Custom actions let users act on insights directly — "Open in CRM", "Create a Task", "Escalate Issue" — turning analytics from passive reporting into a workflow trigger. This is one of the highest-value differentiators of an embedded deployment.</p>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- SPOTTER EMBED -->
+  <div class="spotter-embed-section" id="build-spotter">
+    <div style="background:rgba(4,209,255,0.1);border:1px solid rgba(4,209,255,0.25);border-radius:8px;padding:.7rem 1rem;font-size:.82rem;color:rgba(255,255,255,0.8);margin-bottom:1.5rem;">ℹ️ <strong style="color:#fff;">Spotter availability depends on your ThoughtSpot license tier.</strong> Confirm with your CSM before building Spotter into your product.</div>
+    <div style="font-size:.75rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--ts-cyan);margin-bottom:.7rem;">⭐ Embedded AI Analyst</div>
+    <h3>Embed Spotter — Your AI Analyst</h3>
+    <p class="ses-sub">Spotter is ThoughtSpot's conversational AI interface. Embedding it turns your product from a passive viewer into a self-service AI analyst — users ask natural-language questions and get answers from your data, directly inside your app.</p>
+
+    <div class="ses-cards">
+      <div class="ses-card">
+        <h4>🤖 What It Does</h4>
+        <p>Understands natural-language questions, generates charts and tables, and explains insights — all scoped to your embedded data context.</p>
+      </div>
+      <div class="ses-card">
+        <h4>🧱 What It Needs</h4>
+        <p>A well-built semantic model with business-friendly names, synonyms, and correct aggregations. Spotter is only as good as the model beneath it.</p>
+      </div>
+      <div class="ses-card">
+        <h4>⚙️ Key Parameters</h4>
+        <p>Use <code style="background:rgba(255,255,255,0.1);padding:.1rem .3rem;border-radius:3px;">worksheetId</code> to scope to a model, <code style="background:rgba(255,255,255,0.1);padding:.1rem .3rem;border-radius:3px;">runtimeFilters</code> for tenant isolation, and events for lifecycle management.</p>
+      </div>
+      <div class="ses-card">
+        <h4>🚀 Differentiator</h4>
+        <p>Users can ask "Why did revenue drop in Q3?" or "Which customers are at risk?" — no tickets, no SQL. A genuine product differentiator for embedded deployments.</p>
+      </div>
+    </div>
+
+    <div class="ses-label">✅ Integration Steps</div>
+    <div class="ses-h3">Embedding Spotter in your app</div>
+    <div style="display:flex;flex-direction:column;gap:.75rem;">
+      <div style="display:flex;gap:1rem;align-items:flex-start;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.12);border-radius:8px;padding:.9rem 1.1rem;">
+        <div style="min-width:28px;height:28px;background:var(--ts-cyan);color:var(--ts-dark);border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.82rem;flex-shrink:0;">1</div>
+        <div><strong style="color:#fff;font-size:.9rem;">Scope to your semantic model</strong><p style="margin:.25rem 0 0;font-size:.84rem;color:rgba(255,255,255,0.65);line-height:1.55;">Use <code style="background:rgba(255,255,255,0.1);padding:.1rem .3rem;border-radius:3px;">worksheetId</code> to pre-configure Spotter to the Model relevant for your embedded use case. This focuses conversations and prevents users from querying unrelated data sources.</p></div>
+      </div>
+      <div style="display:flex;gap:1rem;align-items:flex-start;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.12);border-radius:8px;padding:.9rem 1.1rem;">
+        <div style="min-width:28px;height:28px;background:var(--ts-cyan);color:var(--ts-dark);border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.82rem;flex-shrink:0;">2</div>
+        <div><strong style="color:#fff;font-size:.9rem;">Apply runtime filters for contextual scoping</strong><p style="margin:.25rem 0 0;font-size:.84rem;color:rgba(255,255,255,0.65);line-height:1.55;">Use <code style="background:rgba(255,255,255,0.1);padding:.1rem .3rem;border-radius:3px;">runtimeFilters</code> to carry over filter state already set in your host app — region, date range, account — so users start with a consistent, contextual experience without re-specifying filters inside Spotter. <span style="color:var(--ts-yellow);font-weight:600;">⚠ UX convenience only, not a security boundary.</span> For true data isolation, configure RLS on your semantic model — it's enforced server-side and cannot be bypassed.</p></div>
+      </div>
+      <div style="display:flex;gap:1rem;align-items:flex-start;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.12);border-radius:8px;padding:.9rem 1.1rem;">
+        <div style="min-width:28px;height:28px;background:var(--ts-cyan);color:var(--ts-dark);border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.82rem;flex-shrink:0;">3</div>
+        <div><strong style="color:#fff;font-size:.9rem;">Handle Load and Error events</strong><p style="margin:.25rem 0 0;font-size:.84rem;color:rgba(255,255,255,0.65);line-height:1.55;">Subscribe to <code style="background:rgba(255,255,255,0.1);padding:.1rem .3rem;border-radius:3px;">EmbedEvent.Load</code> to measure time-to-first-render and drive UX transitions. Subscribe to <code style="background:rgba(255,255,255,0.1);padding:.1rem .3rem;border-radius:3px;">EmbedEvent.Error</code> for a meaningful fallback state instead of a silent blank iFrame.</p></div>
+      </div>
+    </div>
+
+    <div class="ses-label" style="margin-top:1.5rem;">⚠️ Honest Expectations</div>
+    <div class="ses-h3">What to know before embedding Spotter</div>
+    <div class="ses-limitations">
+      <ul style="padding-left:1.2rem;">
+        <li>Spotter's answer quality is <strong>directly proportional to model quality</strong> — business-friendly names, synonyms, and correct aggregations are not optional</li>
+        <li>Test Spotter thoroughly with real user questions before exposing to end-users — fix the model, not the prompt</li>
+        <li>Runtime filters must be validated per-tenant to avoid data leakage in multi-tenant setups</li>
+      </ul>
+    </div>
+
+    <div style="display:flex;flex-wrap:wrap;gap:1rem;margin-top:2rem;">
+      <a href="https://developers.thoughtspot.com/docs/embed-spotter" target="_blank" rel="noopener noreferrer" class="btn btn-primary" style="font-size:.84rem;">📖 SpotterEmbed Docs</a>
+      <a href="https://try-everywhere.thoughtspot.cloud/v2/#/everywhere/playground/search" target="_blank" rel="noopener noreferrer" class="btn btn-outline" style="font-size:.84rem;border-color:rgba(255,255,255,0.35);color:#fff;">🔬 Try in Playground</a>
+    </div>
+  </div>
+
+  <div class="callout" style="margin-top:1rem;">💡 <strong>Tip:</strong> SpotterCode MCP connects your IDE directly to ThoughtSpot docs — see <a href="#resources" style="color:var(--ts-blue);">Resources ↓</a></div>
+
+  <hr class="divider">
+
+  <!-- FRAMEWORK READINESS -->
+  <div class="subsection-title">Framework readiness (React / Angular / Vue / Next.js)</div>
+  <p class="subsection-sub">The SDK is framework-agnostic, but framework lifecycle management determines whether your embed is stable or leaks memory and sessions.</p>
+  <div class="card-grid">
+    <div class="card" data-role="engineering">
+      <div class="card-tag tag-eng">Component Design</div>
+      <h3>One reusable Analytics component</h3>
+      <p>Centralise <code>init()</code>, auth, parameters, events, and error handling in a single component. Never scatter embed code across pages — it creates impossible-to-debug session conflicts.</p>
+    </div>
+    <div class="card" data-role="engineering">
+      <div class="card-tag tag-eng">Lifecycle</div>
+      <h3>Mount / unmount cleanly</h3>
+      <p>Destroy the embed instance on component unmount to avoid memory leaks and duplicate sessions. In React: call <code>embed.destroy()</code> in your <code>useEffect</code> cleanup return. In Angular: call it in <code>ngOnDestroy</code>. Re-initialize when route-level props like <code>liveboardId</code> or filters change. → <a href="https://developers.thoughtspot.com/docs/react-app-embed" target="_blank" rel="noopener noreferrer" style="color:var(--ts-blue)">React integration guide</a></p>
+    </div>
+    <div class="card" data-role="engineering">
+      <div class="card-tag tag-eng">Config</div>
+      <h3>Environment-driven config</h3>
+      <p>Never hardcode ThoughtSpot host URLs, Liveboard GUIDs, or feature flags. Use environment variables (<code>.env</code> / config service) so Dev, QA, and Prod differ only by config — not code changes.</p>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- CUSTOMIZATION -->
+  <div class="subsection-title" id="build-styling">Styling and branding</div>
+  <p class="subsection-sub">Make ThoughtSpot feel native to your product. CSS variables are the most stable approach — they survive SDK and platform upgrades.</p>
+
+  <div class="callout success">
+    <strong>✓ Use Theme Builder for visual customization</strong>
+    ThoughtSpot's <a href="https://developers.thoughtspot.com/docs/theme-builder" target="_blank" rel="noopener noreferrer" style="color:var(--ts-dark)">Theme Builder</a> is the modern, no-code way to configure colors, fonts, and component styles — generate a theme config and export it directly into your <code>init()</code> call. Use custom CSS variables for anything beyond what Theme Builder covers.
+  </div>
+  <div class="callout">
+    <strong>How to apply CSS customizations</strong>
+    Pass CSS variable overrides inside the <code>customizations.style.customCSS.variables</code> object within your <code>init()</code> call — or point to a hosted CSS file via <code>customizations.style.customCSSUrl</code>. For advanced overrides not covered by variables, use <code>rules_UNSTABLE</code> sparingly and validate after each platform upgrade. → <a href="https://developers.thoughtspot.com/docs/custom-css" target="_blank" rel="noopener noreferrer" style="color:var(--ts-blue)">Custom CSS docs</a> · <a href="https://github.com/thoughtspot/custom-css-demo/blob/main/css-variables.css" target="_blank" rel="noopener noreferrer" style="color:var(--ts-blue)">All CSS variables reference</a>
+  </div>
+
+  <div class="table-wrap" style="max-width:800px;">
+    <table class="dt">
+      <thead><tr><th>Element</th><th>CSS Variable</th></tr></thead>
+      <tbody>
+        <tr><td>Page background</td><td><code>--ts-var-root-background</code></td></tr>
+        <tr><td>Text color</td><td><code>--ts-var-root-color</code></td></tr>
+        <tr><td>Primary button</td><td><code>--ts-var-button--primary-background</code></td></tr>
+        <tr><td>Font family</td><td><code>--ts-var-font-family</code></td></tr>
+        <tr><td>Nav/header background</td><td><code>--ts-var-nav-background</code></td></tr>
+        <tr><td>Custom icon set</td><td><code>customizations.iconSpriteUrl</code></td></tr>
+        <tr><td>Rename UI strings</td><td><code>customizations.content</code></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+</section>
+</div>
+
+<!-- ═══════════════════════════════════════
+     PHASE 04 — VALIDATE
+════════════════════════════════════════ -->
+<div style="background:#fff;border-top:3px solid var(--ts-border);">
+<section class="section" id="validate">
+  <div class="phase-meta">
+    <span>⏱ Week 6–8</span>
+    <span>🏗️ Engineering · 🔬 Data · 🔧 Admin</span>
+    <span>📌 UAT, performance, multi-tenancy testing, security hardening</span>
+    <span>⚡ ~1–2 weeks of testing</span>
+  </div>
+  <h2 class="section-title section-title--phase">04 — Validate</h2>
+  <p class="section-sub">A technically successful embed that nobody uses — or that leaks data — is still a failure. Validate security, performance, and UX before go-live.</p>
+
+  <!-- MULTI-TENANCY -->
+  <div class="subsection-title">Multi-tenancy model: choose your isolation level</div>
+  <p class="subsection-sub">If you serve multiple customers, pick your isolation model on day one. Changing it later is expensive.</p>
+  <div class="mt-grid">
+    <div class="mt-card mt-blue">
+      <div class="mt-header"><div class="mt-title">RLS-based</div><span class="mt-badge fast">Fastest to scale</span></div>
+      <p>One ThoughtSpot environment. Tenant isolation enforced by Row-Level Security rules tied to user attributes. Best when tenants share similar schemas.</p>
+      <ul>
+        <li>Lowest governance overhead</li>
+        <li>Any RLS misconfiguration is a leakage risk — test every persona</li>
+        <li>Best default for SaaS products with homogeneous data</li>
+      </ul>
+    </div>
+    <div class="mt-card mt-yellow">
+      <div class="mt-header"><div class="mt-title">Org-based</div><span class="mt-badge safe">Safer isolation</span></div>
+      <p>Tenants are segmented into separate ThoughtSpot Orgs (optionally with RLS within each org). Higher isolation requirements.</p>
+      <ul>
+        <li>Stronger separation for customers who ask for it</li>
+        <li>Requires content promotion automation across orgs</li>
+        <li>Right choice for strict separation requirements</li>
+      </ul>
+    </div>
+    <div class="mt-card mt-red">
+      <div class="mt-header"><div class="mt-title">Dedicated environments</div><span class="mt-badge max">Maximum isolation</span></div>
+      <p>Separate ThoughtSpot instances per tenant. For regulatory, contractual, or security requirements that prohibit any shared infrastructure.</p>
+      <ul>
+        <li>Maximum isolation — no shared compute or storage</li>
+        <li>Highest cost and operational overhead</li>
+        <li>Requires full automation to be manageable at scale</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="callout critical">
+    <strong>🚨 Non-negotiable for any multi-tenant approach</strong>
+    Every user session must carry a stable <code>tenant_id</code>. Fail closed: if tenant context is missing or ambiguous, do not render the embed. Test "Tenant A cannot see Tenant B" across every persona before go-live.
+  </div>
+
+  <hr class="divider">
+
+  <!-- PERFORMANCE -->
+  <div class="subsection-title">Performance best practices</div>
+  <div class="card-grid">
+    <div class="card" data-role="engineering">
+      <div class="card-icon">⚡</div>
+      <div class="card-tag tag-eng">SDK</div>
+      <h3>Initialize once per session</h3>
+      <p>Call <code>init()</code> once, not on every page navigation. Use lazy loading for embeds below the fold. Track load time with <code>EmbedEvent.Load</code>.</p>
+    </div>
+    <div class="card" data-role="data">
+      <div class="card-icon">📊</div>
+      <div class="card-tag tag-data">Liveboards</div>
+      <h3>Limit to 3–5 charts per Liveboard</h3>
+      <p>Break large Liveboards (10+ charts) into focused, tabbed sub-Liveboards. Use Liveboard snapshot API to pre-warm cache before peak windows.</p>
+    </div>
+    <div class="card" data-role="data">
+      <div class="card-icon">🗄️</div>
+      <div class="card-tag tag-data">Data Layer</div>
+      <h3>Optimise CDW for ThoughtSpot queries</h3>
+      <p>Use clustering keys, pre-aggregated tables for frequently accessed metrics, and CDW auto-scaling for peak concurrency. Review ThoughtSpot's query history in CDW.</p>
+    </div>
+    <div class="card" data-role="engineering">
+      <div class="card-icon">🔥</div>
+      <div class="card-tag tag-eng">Load Testing</div>
+      <h3>Test at 50 → 100 → 250 concurrent users</h3>
+      <p>Validate CDW warehouse sizing, ThoughtSpot query queue behavior, and SDK load. Stress test before go-live, not after.</p>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- TROUBLESHOOTING -->
+  <div class="subsection-title">Troubleshooting common errors</div>
+  <p class="subsection-sub">Check the browser console first. 90% of embed issues have a visible error message.</p>
+  <div class="accordion" id="troubleshootingAccordion">
+    <div class="acc-item">
+      <button class="acc-trigger" onclick="toggleAcc(this)">
+        <span class="err-tag">CSP</span> Refused to frame — blank iframe
+        <span class="arrow">▼</span>
+      </button>
+      <div class="acc-body">
+        <p><strong>Root cause:</strong> Your application domain is not in ThoughtSpot's CSP Visual Embed Hosts allowlist.</p>
+        <div class="fix-box"><strong>Fix</strong>Go to <strong>Develop → Customizations → Security Settings → CSP Visual Embed Hosts</strong>. Add your exact app domain (e.g. <code>https://app.yourcompany.com</code>). Avoid wildcards in production.</div>
+      </div>
+    </div>
+    <div class="acc-item">
+      <button class="acc-trigger" onclick="toggleAcc(this)">
+        <span class="err-tag">CORS</span> API requests fail with CORS headers error
+        <span class="arrow">▼</span>
+      </button>
+      <div class="acc-body">
+        <p><strong>Root cause:</strong> Your application domain is not in the CORS allowlist.</p>
+        <div class="fix-box"><strong>Fix</strong>Add your origin to the CORS allowlist in Security Settings. Use <code>.*</code> patterns to match subdomains. See the <a href="https://developers.thoughtspot.com/docs/security-settings#cors" target="_blank" rel="noopener noreferrer">CORS docs</a> for full pattern syntax.</div>
+      </div>
+    </div>
+    <div class="acc-item">
+      <button class="acc-trigger" onclick="toggleAcc(this)">
+        <span class="err-tag">Cookie</span> SameSite cookie blocked — user sees login prompt
+        <span class="arrow">▼</span>
+      </button>
+      <div class="acc-body">
+        <p><strong>Root cause:</strong> Browser enforces <code>SameSite=Lax</code> by default, blocking cross-origin cookies set by ThoughtSpot inside your iFrame.</p>
+        <div class="fix-box"><strong>Fix</strong>Switch from <code>AuthType.TrustedAuthToken</code> to <code>AuthType.TrustedAuthTokenCookieless</code>. This eliminates the cookie dependency entirely and is the recommended production mode.</div>
+      </div>
+    </div>
+    <div class="acc-item">
+      <button class="acc-trigger" onclick="toggleAcc(this)">
+        <span class="err-tag">401</span> Unauthorized — embed shows login screen
+        <span class="arrow">▼</span>
+      </button>
+      <div class="acc-body">
+        <p><strong>Root cause:</strong> Token expired, wrong username, or Trusted Authentication is not enabled.</p>
+        <div class="fix-box"><strong>Fix</strong>Verify Trusted Auth is enabled in Security Settings. Check your <code>getAuthToken</code> function returns a valid token string. Confirm the username in the token matches an existing (or JIT-creatable) ThoughtSpot user.</div>
+      </div>
+    </div>
+    <div class="acc-item">
+      <button class="acc-trigger" onclick="toggleAcc(this)">
+        <span class="err-tag">RLS</span> Liveboards return no data
+        <span class="arrow">▼</span>
+      </button>
+      <div class="acc-body">
+        <p><strong>Root cause:</strong> RLS rule filters out all rows for the authenticated user — often because the user attribute value doesn't match any rows.</p>
+        <div class="fix-box"><strong>Fix</strong>Use <strong>Impersonate User</strong> in ThoughtSpot Admin to test as the affected user. Check the attribute values being passed. Verify the RLS rule column name exactly matches the data column name (case-sensitive).</div>
+      </div>
+    </div>
+    <div class="acc-item">
+      <button class="acc-trigger" onclick="toggleAcc(this)">
+        <span class="err-tag">Blank</span> iFrame renders white box, no console error
+        <span class="arrow">▼</span>
+      </button>
+      <div class="acc-body">
+        <p><strong>Root cause:</strong> SDK <code>init()</code> was not called before the embed component was rendered, or the container element does not exist in the DOM yet.</p>
+        <div class="fix-box"><strong>Fix</strong>Ensure <code>init()</code> is called and awaited before constructing any embed component. Confirm the container element (<code>document.getElementById('ts-embed')</code>) exists at the time of render.</div>
+      </div>
+    </div>
+  </div>
+
+</section>
+</div>
+
+<!-- ═══════════════════════════════════════
+     PHASE 05 — LAUNCH
+════════════════════════════════════════ -->
+<div style="background:var(--ts-light);border-top:3px solid var(--ts-border);">
+<section class="section" id="launch">
+  <div class="phase-meta">
+    <span>⏱ Week 8–10</span>
+    <span>🏗️ Engineering · 🗂️ Product · 🔧 Admin</span>
+    <span>📌 Pre-launch checklist, CI/CD pipeline, and adoption planning</span>
+    <span>⚡ ~2–3 days of final checks</span>
+  </div>
+  <h2 class="section-title section-title--phase">05 — Launch</h2>
+  <p class="section-sub">Launch is the start line, not the finish line. Use this checklist as your final Go/No-Go gate, then build for adoption.</p>
+
+  <!-- PRE-LAUNCH CHECKLIST -->
+  <div class="subsection-title">Master pre-launch checklist</div>
+  <div class="check-progress">
+    <div class="check-bar-wrap"><div class="check-bar" id="checkBar"></div></div>
+    <div class="check-label" id="checkLabel">0 / 0 complete</div>
+  </div>
+
+  <div class="checklist-section-title">Foundation</div>
+  <div class="check-items">
+    <div class="check-item" onclick="toggleCheck(this)"><input type="checkbox" id="c1"/><label for="c1">ThoughtSpot cluster provisioned and accessible</label></div>
+    <div class="check-item" onclick="toggleCheck(this)"><input type="checkbox" id="c2"/><label for="c2">Data connection(s) established and validated in CDW</label></div>
+    <div class="check-item" onclick="toggleCheck(this)"><input type="checkbox" id="c3"/><label for="c3"><a href="#foundation" style="color:inherit;text-decoration:underline dotted;text-underline-offset:2px;">Semantic Model built, tested end-to-end, and approved</a></label></div>
+    <div class="check-item" onclick="toggleCheck(this)"><input type="checkbox" id="c4"/><label for="c4"><a href="#validate" style="color:inherit;text-decoration:underline dotted;text-underline-offset:2px;">Application domain added to CSP Visual Embed Hosts</a></label></div>
+    <div class="check-item" onclick="toggleCheck(this)"><input type="checkbox" id="c5"/><label for="c5"><a href="#validate" style="color:inherit;text-decoration:underline dotted;text-underline-offset:2px;">Application domain added to CORS allowlist</a></label></div>
+  </div>
+
+  <div class="checklist-section-title">Authentication</div>
+  <div class="check-items">
+    <div class="check-item" onclick="toggleCheck(this)"><input type="checkbox" id="c6"/><label for="c6"><a href="#build" style="color:inherit;text-decoration:underline dotted;text-underline-offset:2px;">Trusted Authentication enabled in Security Settings</a></label></div>
+    <div class="check-item" onclick="toggleCheck(this)"><input type="checkbox" id="c7"/><label for="c7"><a href="#build" style="color:inherit;text-decoration:underline dotted;text-underline-offset:2px;">Backend token service built, tested, and secret_key stored securely</a></label></div>
+    <div class="check-item" onclick="toggleCheck(this)"><input type="checkbox" id="c8"/><label for="c8"><a href="#build" style="color:inherit;text-decoration:underline dotted;text-underline-offset:2px;">getAuthToken configured in SDK init() with TrustedAuthTokenCookieless</a></label></div>
+    <div class="check-item" onclick="toggleCheck(this)"><input type="checkbox" id="c9"/><label for="c9">Token TTL and automatic refresh behavior validated</label></div>
+    <div class="check-item" onclick="toggleCheck(this)"><input type="checkbox" id="c10"/><label for="c10">JIT provisioning tested (if auto_create: true is used)</label></div>
+    <div class="check-item" onclick="toggleCheck(this)"><input type="checkbox" id="c11"/><label for="c11">Logout / token revocation implemented (POST /api/rest/2.0/auth/token/revoke)</label></div>
+  </div>
+
+  <div class="checklist-section-title">Security</div>
+  <div class="check-items">
+    <div class="check-item" onclick="toggleCheck(this)"><input type="checkbox" id="c12"/><label for="c12"><a href="#validate" style="color:inherit;text-decoration:underline dotted;text-underline-offset:2px;">RLS rules tested for every user persona</a></label></div>
+    <div class="check-item" onclick="toggleCheck(this)"><input type="checkbox" id="c13"/><label for="c13"><a href="#validate" style="color:inherit;text-decoration:underline dotted;text-underline-offset:2px;">CLS applied to all sensitive columns (PII, cost, salary)</a></label></div>
+    <div class="check-item" onclick="toggleCheck(this)"><input type="checkbox" id="c14"/><label for="c14"><a href="#validate" style="color:inherit;text-decoration:underline dotted;text-underline-offset:2px;">Multi-tenant isolation validated: "Tenant A cannot see Tenant B"</a></label></div>
+    <div class="check-item" onclick="toggleCheck(this)"><input type="checkbox" id="c15"/><label for="c15">Deprovisioning process defined and tested</label></div>
+  </div>
+
+  <div class="checklist-section-title">Embed and UX</div>
+  <div class="check-items">
+    <div class="check-item" onclick="toggleCheck(this)"><input type="checkbox" id="c16"/><label for="c16">Reusable embed component built and tested across pages</label></div>
+    <div class="check-item" onclick="toggleCheck(this)"><input type="checkbox" id="c17"/><label for="c17">Branding / CSS customizations applied and reviewed by design</label></div>
+    <div class="check-item" onclick="toggleCheck(this)"><input type="checkbox" id="c18"/><label for="c18">Hidden / disabled actions configured for embedded context</label></div>
+    <div class="check-item" onclick="toggleCheck(this)"><input type="checkbox" id="c19"/><label for="c19">Runtime filters validated (including empty/no-value edge cases)</label></div>
+    <div class="check-item" onclick="toggleCheck(this)"><input type="checkbox" id="c20"/><label for="c20">Error and empty states implemented and tested</label></div>
+    <div class="check-item" onclick="toggleCheck(this)"><input type="checkbox" id="c21"/><label for="c21">EmbedEvent.Load and EmbedEvent.Error handlers connected</label></div>
+  </div>
+
+  <div class="checklist-section-title">Performance</div>
+  <div class="check-items">
+    <div class="check-item" onclick="toggleCheck(this)"><input type="checkbox" id="c22"/><label for="c22"><a href="#validate" style="color:inherit;text-decoration:underline dotted;text-underline-offset:2px;">Liveboard load times acceptable at realistic data volumes</a></label></div>
+    <div class="check-item" onclick="toggleCheck(this)"><input type="checkbox" id="c23"/><label for="c23"><a href="#validate" style="color:inherit;text-decoration:underline dotted;text-underline-offset:2px;">Concurrency tested at expected peak load (50 → 100 → 250 users)</a></label></div>
+    <div class="check-item" onclick="toggleCheck(this)"><input type="checkbox" id="c24"/><label for="c24">CDW auto-scaling or capacity plan confirmed</label></div>
+    <div class="check-item" onclick="toggleCheck(this)"><input type="checkbox" id="c25"/><label for="c25">Monitoring in place: load times, auth errors, usage metrics</label></div>
+  </div>
+
+  <div class="checklist-section-title">CI/CD and Operations</div>
+  <div class="check-items">
+    <div class="check-item" onclick="toggleCheck(this)"><input type="checkbox" id="c26"/><label for="c26">Dev → QA → Prod TML promotion pipeline operational and tested</label></div>
+    <div class="check-item" onclick="toggleCheck(this)"><input type="checkbox" id="c27"/><label for="c27">Rollback procedure defined and tested</label></div>
+    <div class="check-item" onclick="toggleCheck(this)"><input type="checkbox" id="c28"/><label for="c28">SDK version pinned; quarterly upgrade review cadence set</label></div>
+    <div class="check-item" onclick="toggleCheck(this)"><input type="checkbox" id="c29"/><label for="c29">Runbook and operational ownership documented</label></div>
+  </div>
+
+  <div class="checklist-section-title">Adoption</div>
+  <div class="check-items">
+    <div class="check-item" onclick="toggleCheck(this)"><input type="checkbox" id="c30"/><label for="c30">Training and enablement plan ready for end users</label></div>
+    <div class="check-item" onclick="toggleCheck(this)"><input type="checkbox" id="c31"/><label for="c31">Support ownership and SLAs defined</label></div>
+    <div class="check-item" onclick="toggleCheck(this)"><input type="checkbox" id="c32"/><label for="c32">In-app feedback mechanism in place</label></div>
+    <div class="check-item" onclick="toggleCheck(this)"><input type="checkbox" id="c33"/><label for="c33">Adoption metrics instrumented: WAU, load times, failed search queries</label></div>
+  </div>
+
+
+  <hr class="divider">
+
+  <!-- ADOPTION METRICS -->
+  <div class="subsection-title">Adoption: make it stick</div>
+  <p class="subsection-sub">A technically successful embed that nobody uses is still a failure. Launch is the start line — plan for adoption from day one.</p>
+  <div class="callout">
+    <strong>Adoption rule of thumb</strong>
+    If WAU (Weekly Active Users) of embedded analytics is below 30% of licensed users at Week 4 post-launch, investigate friction: Is the embed too slow? Too hard to find? Does it answer real questions? Don't wait — act early.
+  </div>
+  <div class="table-wrap">
+    <table class="dt">
+      <thead><tr><th>Metric</th><th>Where to find it</th><th>What it tells you</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Weekly Active Users (WAU)</strong></td><td>ThoughtSpot Admin → User activity</td><td>Overall adoption health</td></tr>
+        <tr><td><strong>Most-used Liveboards</strong></td><td>ThoughtSpot Admin → Monitoring</td><td>What content is actually valuable</td></tr>
+        <tr><td><strong>Failed / unanswered searches</strong></td><td>ThoughtSpot Admin → Search activity</td><td>Gaps in your Model — add synonyms or columns</td></tr>
+        <tr><td><strong>Liveboard load time P95</strong></td><td>ThoughtSpot Admin → Performance + SDK EmbedEvent.Load</td><td>Performance issues before users complain</td></tr>
+        <tr><td><strong>Auth error rate</strong></td><td>Your backend logs + SDK EmbedEvent.Error</td><td>Token issues, session problems</td></tr>
+        <tr><td><strong>Tenant-level usage</strong></td><td>Custom dashboard on ThoughtSpot activity data</td><td>Which customers are engaged vs at-risk</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="card-grid" style="margin-top:1.2rem;">
+    <div class="card" data-role="product">
+      <div class="card-tag tag-prod">Enablement</div>
+      <h3>Train your users, not just your team</h3>
+      <p>Create a short in-app guide or "getting started" flow for end users. Link to ThoughtSpot U. The teams with the highest adoption invest in user education, not just engineering.</p>
+    </div>
+    <div class="card" data-role="product">
+      <div class="card-tag tag-prod">Feedback Loop</div>
+      <h3>Build a feedback mechanism</h3>
+      <p>Add a "Was this helpful?" widget or a "Report an issue" link inside your embedded product. Collect qualitative feedback weekly in the first 8 weeks post-launch.</p>
+    </div>
+    <div class="card" data-role="engineering">
+      <div class="card-tag tag-eng">Support</div>
+      <h3>Define ownership before go-live</h3>
+      <p>Assign a named owner for: embed bugs, data model issues, user provisioning failures, and performance incidents. Unclear ownership means slow resolution and churn.</p>
+    </div>
+  </div>
+
+</section>
+</div>
+
+<!-- ═══════════════════════════════════════
+     REST API & AUTOMATION
+════════════════════════════════════════ -->
+<div style="background:#fff;border-top:3px solid var(--ts-border);">
+<section class="section" id="restapi">
+  <h2 class="section-title">REST API &amp; Automation</h2>
+  <p class="section-sub">ThoughtSpot's REST API v2.0 is the backbone of scalable operations — automate user provisioning, content promotion, token management, and usage reporting programmatically.</p>
+
+  <div class="callout">
+    <strong>When to use the REST API</strong>
+    Use the REST API for any operation that needs to happen programmatically at scale: onboarding new tenants, promoting TML across environments, generating auth tokens from your backend, or extracting usage data for billing and reporting.
+  </div>
+
+  <div class="table-wrap">
+    <table class="dt">
+      <thead><tr><th>Capability</th><th>Key endpoint(s)</th><th>Common use case</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Auth token generation</strong></td><td><code>POST /api/rest/2.0/auth/token/custom</code></td><td>Backend token endpoint for Trusted Auth (create user session)</td></tr>
+        <tr><td><strong>Auth token with variable values (ABAC) for RLS</strong></td><td><code>POST /api/rest/2.0/auth/token/custom</code></td><td>Per-user ABAC using variable values (formula variables) in JWT. Variable values are optional — used for applying row-level security rules. → <a href="https://developers.thoughtspot.com/docs/abac-via-rls-variables" target="_blank" rel="noopener noreferrer" style="color:var(--ts-blue)">ABAC via RLS variables docs</a></td></tr>
+        <tr><td><strong>User management</strong></td><td><code>/api/rest/2.0/users</code></td><td>Create, update, deactivate users programmatically (bulk onboarding)</td></tr>
+        <tr><td><strong>Group management</strong></td><td><code>/api/rest/2.0/groups</code></td><td>Map tenant roles to ThoughtSpot groups; assign RLS rules</td></tr>
+        <tr><td><strong>TML export</strong></td><td><code>POST /api/rest/2.0/metadata/tml/export</code></td><td>Extract Models and Liveboards for version control</td></tr>
+        <tr><td><strong>TML import</strong></td><td><code>POST /api/rest/2.0/metadata/tml/import</code></td><td>Deploy content to QA/Prod in CI/CD pipeline</td></tr>
+        <tr><td><strong>Search data</strong></td><td><code>POST /api/rest/2.0/searchdata</code></td><td>Programmatic data queries — power custom UI without an iFrame</td></tr>
+        <tr><td><strong>Liveboard snapshot</strong></td><td><code>POST /api/rest/2.0/report/liveboard</code></td><td>Export Liveboard as PDF/PNG for scheduled email digests</td></tr>
+        <tr><td><strong>Connection management</strong></td><td><code>/api/rest/2.0/connections</code></td><td>Create/update CDW connections programmatically per tenant</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="subsection-title" style="margin-top:2rem;">Per-user data scoping via <code>token/custom</code></div>
+  <p class="subsection-sub">The <code>token/custom</code> endpoint is the standard way to pass per-user data context — use formula variables and variable values inside the JWT to scope data without managing RLS rules in ThoughtSpot.</p>
+  <div class="step-list" style="max-width:750px;">
+    <div class="step"><div class="step-num">1</div><div class="step-content"><h4>Define formula variables in your Model</h4><p>Create formula variables in your ThoughtSpot Model (e.g. <code>current_tenant</code>, <code>fiscal_year</code>). These become the injection points for per-user context passed via the token.</p></div></div>
+    <div class="step"><div class="step-num">2</div><div class="step-content"><h4>Pass variable values in the token payload</h4><p>Use the <code>variable_values</code> field in your <code>POST /api/rest/2.0/auth/token/custom</code> request to inject runtime values for each user — e.g. their tenant ID, region, or role. ThoughtSpot applies these as filters at query time.</p></div></div>
+    <div class="step"><div class="step-num">3</div><div class="step-content"><h4>Use <code>parameter_values</code> for worksheet parameters</h4><p>Pass dynamic parameter values (e.g. current fiscal quarter, selected currency) to pre-populate worksheet parameters without user interaction — keeping the embed context-aware on every load.</p></div></div>
+  </div>
+  <div class="callout">
+    <strong>ABAC reference</strong>
+    See the <a href="https://developers.thoughtspot.com/docs/abac-user-parameters" target="_blank" rel="noopener noreferrer" style="color:var(--ts-blue)">ABAC documentation</a> for the full list of filter operators, persist options, and version requirements.
+  </div>
+
+  <div class="card-grid" style="margin-top:1.5rem;">
+    <div class="card" data-role="engineering">
+      <div class="card-tag tag-eng">Best Practice</div>
+      <h3>Use a service account for API calls</h3>
+      <p>Never use a personal admin account for automated REST API calls. Create a dedicated ThoughtSpot service account with the minimum required privileges. Store credentials in a secrets manager, not environment files committed to git.</p>
+    </div>
+    <div class="card" data-role="engineering">
+      <div class="card-tag tag-eng">Reliability</div>
+      <h3>Handle rate limits and retries</h3>
+      <p>ThoughtSpot's API enforces rate limits on high-volume operations (bulk user creates, TML imports). Implement exponential backoff with retry logic for bulk operations. Review rate limit docs before automating at scale.</p>
+    </div>
+    <div class="card" data-role="data">
+      <div class="card-tag tag-data">TML Automation</div>
+      <h3>Automate content promotion</h3>
+      <p>Use <code>tml/export</code> + <code>tml/import</code> in your CI/CD pipeline to promote Models and Liveboards across environments. Replace environment-specific GUIDs with portable identifiers. Validate TML syntax in the lint stage before promoting.</p>
+    </div>
+  </div>
+</section>
+</div>
+
+<!-- ═══════════════════════════════════════
+     RESOURCES
+════════════════════════════════════════ -->
+<div style="background:var(--ts-dark);border-top:3px solid rgba(4,209,255,0.15);">
+<section class="section" id="resources">
+  <h2 class="section-title" style="color:#fff;">Resources</h2>
+  <p class="section-sub" style="color:rgba(255,255,255,0.55);">Everything you need bookmarked in one place.</p>
+  <div class="card-grid" style="--ts-border:rgba(4,209,255,0.12);--shadow:0 2px 16px rgba(0,0,0,0.3);">
+    <a class="card" href="https://developers.thoughtspot.com/docs/getting-started" target="_blank" rel="noopener noreferrer" style="background:rgba(255,255,255,0.06);border-color:rgba(4,209,255,0.15);">
+      <div class="card-icon">📖</div>
+      <h3 style="color:#fff;">SDK Quickstart</h3>
+      <p style="color:rgba(255,255,255,0.5);">Step-by-step guide to installing and initializing the Visual Embed SDK.</p>
+      <span class="start-here-badge">⭐ Start here</span>
+      <span class="card-link">developers.thoughtspot.com →</span>
+    </a>
+    <a class="card" href="https://try-everywhere.thoughtspot.cloud/v2/#/everywhere/playground/search" target="_blank" rel="noopener noreferrer" style="background:rgba(255,255,255,0.06);border-color:rgba(4,209,255,0.15);">
+      <div class="card-icon">🔬</div>
+      <h3 style="color:#fff;">Developer Playground</h3>
+      <p style="color:rgba(255,255,255,0.5);">Experiment with all embed types, generate code snippets, and preview CSS changes live — no account needed.</p>
+      <span class="start-here-badge">⭐ Start here</span>
+      <span class="card-link">Open Playground →</span>
+    </a>
+    <a class="card" href="https://developers.thoughtspot.com/docs/rest-apiv2-getstarted" target="_blank" rel="noopener noreferrer" style="background:rgba(255,255,255,0.06);border-color:rgba(4,209,255,0.15);">
+      <div class="card-icon">⚡</div>
+      <h3 style="color:#fff;">REST API v2.0 Explorer</h3>
+      <p style="color:rgba(255,255,255,0.5);">Interactive API explorer for users, groups, TML import/export, auth tokens, and search data.</p>
+      <span class="card-link">REST API docs →</span>
+    </a>
+    <a class="card" href="https://training.thoughtspot.com/getting-started-with-thoughtspot-embedded" target="_blank" rel="noopener noreferrer" style="background:rgba(255,255,255,0.06);border-color:rgba(4,209,255,0.15);">
+      <div class="card-icon">🎓</div>
+      <h3 style="color:#fff;">ThoughtSpot U — TSE Training</h3>
+      <p style="color:rgba(255,255,255,0.5);">Self-paced eLearning: Getting Started with ThoughtSpot Embedded. Free for customers.</p>
+      <span class="start-here-badge">⭐ Start here</span>
+      <span class="card-link">training.thoughtspot.com →</span>
+    </a>
+    <a class="card" href="https://community.thoughtspot.com/customers/s/topic/0TO3n000000erVyGAI/developers" target="_blank" rel="noopener noreferrer" style="background:rgba(255,255,255,0.06);border-color:rgba(4,209,255,0.15);">
+      <div class="card-icon">💬</div>
+      <h3 style="color:#fff;">Developer Community</h3>
+      <p style="color:rgba(255,255,255,0.5);">Ask questions, share solutions, and connect with other ThoughtSpot developers.</p>
+      <span class="card-link">community.thoughtspot.com →</span>
+    </a>
+    <a class="card" href="https://codesandbox.io/p/sandbox/big-tse-react-demo-i4g9xi" target="_blank" rel="noopener noreferrer" style="background:rgba(255,255,255,0.06);border-color:rgba(4,209,255,0.15);">
+      <div class="card-icon">⚙️</div>
+      <h3 style="color:#fff;">React Demo App</h3>
+      <p style="color:rgba(255,255,255,0.5);">Full working React demo with LiveboardEmbed, auth flow, and runtime filters. Fork and adapt.</p>
+      <span class="card-link">Open in CodeSandbox →</span>
+    </a>
+    <a class="card" href="https://github.com/thoughtspot/custom-css-demo/blob/main/css-variables.css" target="_blank" rel="noopener noreferrer" style="background:rgba(255,255,255,0.06);border-color:rgba(4,209,255,0.15);">
+      <div class="card-icon">🎨</div>
+      <h3 style="color:#fff;">CSS Variables Reference</h3>
+      <p style="color:rgba(255,255,255,0.5);">Complete list of all supported ThoughtSpot CSS variables for branding and customization.</p>
+      <span class="card-link">GitHub →</span>
+    </a>
+    <a class="card" href="https://developers.thoughtspot.com/docs/embed-sdk-changelog" target="_blank" rel="noopener noreferrer" style="background:rgba(255,255,255,0.06);border-color:rgba(4,209,255,0.15);">
+      <div class="card-icon">📋</div>
+      <h3 style="color:#fff;">SDK Changelog</h3>
+      <p style="color:rgba(255,255,255,0.5);">Track SDK version history, breaking changes, and compatibility with cluster releases. Review before every upgrade.</p>
+      <span class="card-link">SDK changelog →</span>
+    </a>
+    <a class="card" href="https://discord.com/invite/JHPGwCkvjQ" target="_blank" rel="noopener noreferrer" style="background:rgba(113,70,251,0.15);border-color:rgba(113,70,251,0.45);position:relative;">
+      <span style="position:absolute;top:.7rem;right:.7rem;background:rgba(113,70,251,0.3);color:#c4b5fd;font-size:.62rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em;padding:.15rem .5rem;border-radius:999px;border:1px solid rgba(113,70,251,0.4);">Community</span>
+      <div class="card-icon">💬</div>
+      <h3 style="color:#fff;">Developer Community — Discord</h3>
+      <p style="color:rgba(255,255,255,0.5);">Join the ThoughtSpot developer community on Discord. Ask questions, share solutions, and connect with other engineers building on the platform.</p>
+      <span class="card-link" style="color:#a78bfa;">Join Discord →</span>
+    </a>
+    <a class="card" href="https://developers.thoughtspot.com/docs/SpotterCode" target="_blank" rel="noopener noreferrer" style="background:rgba(4,209,255,0.08);border-color:rgba(4,209,255,0.4);position:relative;">
+      <span style="position:absolute;top:.7rem;right:.7rem;background:rgba(4,209,255,0.15);color:var(--ts-cyan);font-size:.62rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em;padding:.15rem .5rem;border-radius:999px;border:1px solid rgba(4,209,255,0.3);">New</span>
+      <div class="card-icon">⚡</div>
+      <h3 style="color:#fff;">SpotterCode — AI Dev Accelerator</h3>
+      <p style="color:rgba(255,255,255,0.5);">Connect Cursor, VS Code, or Claude Code to ThoughtSpot's MCP server for context-aware embed code generation and live SDK docs in your IDE.</p>
+      <span class="card-link" style="color:var(--ts-cyan);">SpotterCode docs →</span>
+    </a>
+    <a class="card" href="https://www.youtube.com/@thoughtspotfordevelopers" target="_blank" rel="noopener noreferrer" style="background:rgba(255,0,0,0.08);border-color:rgba(255,0,0,0.3);position:relative;">
+      <span style="position:absolute;top:.7rem;right:.7rem;background:rgba(255,0,0,0.2);color:#fca5a5;font-size:.62rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em;padding:.15rem .5rem;border-radius:999px;border:1px solid rgba(255,0,0,0.3);">Video</span>
+      <div class="card-icon">▶️</div>
+      <h3 style="color:#fff;">ThoughtSpot for Developers — YouTube</h3>
+      <p style="color:rgba(255,255,255,0.5);">Tutorials, deep-dives, and live coding sessions on the Visual Embed SDK, REST API, and building with ThoughtSpot Everywhere.</p>
+      <span class="card-link" style="color:#fca5a5;">youtube.com →</span>
+    </a>
+    <a class="card" href="https://community.thoughtspot.com/s/contactsupport" target="_blank" rel="noopener noreferrer" style="background:rgba(255,255,255,0.06);border-color:rgba(4,209,255,0.15);">
+      <div class="card-icon">🙋</div>
+      <h3 style="color:#fff;">Need Help? Contact Support</h3>
+      <p style="color:rgba(255,255,255,0.5);">Reach your ThoughtSpot CSM or open a support ticket. New customers: your CSM is your first point of contact for licensing, access, and onboarding questions.</p>
+      <span class="card-link">support.thoughtspot.com →</span>
+    </a>
+  </div>
+</section>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-title">ThoughtSpot Embedded · SpotGuide</div>
+  <div class="footer-sub">Last updated: March 2025 · Reflects ThoughtSpot Cloud latest</div>
+  <div class="footer-links">
+    <a href="https://developers.thoughtspot.com/docs/getting-started" target="_blank" rel="noopener noreferrer">SDK Docs</a>
+    <a href="https://developers.thoughtspot.com/docs/rest-apiv2-getstarted" target="_blank" rel="noopener noreferrer">REST API</a>
+    <a href="https://training.thoughtspot.com" target="_blank" rel="noopener noreferrer">University</a>
+    <a href="https://community.thoughtspot.com" target="_blank" rel="noopener noreferrer">Community</a>
+  </div>
+</footer>
+
+<!-- BACK TO TOP (item 6) -->
+<button id="backToTop" onclick="window.scrollTo({top:0,behavior:'smooth'})" aria-label="Back to top">↑ Top</button>
+
+<!-- GLOSSARY FLOATING BTN & DRAWER (item 15) -->
+<button id="glossaryBtn" onclick="toggleGlossaryDrawer()" aria-label="Open glossary">? Glossary</button>
+<div id="glossaryDrawer" role="dialog" aria-label="Glossary" aria-hidden="true">
+  <div class="glossary-drawer-header">
+    <span>📖 Glossary</span>
+    <input id="glossarySearch" type="text" placeholder="Search terms..." oninput="filterGlossary(this.value)" />
+    <button onclick="toggleGlossaryDrawer()" aria-label="Close">✕</button>
+  </div>
+  <div id="glossaryDrawerContent" class="glossary-drawer-body"></div>
+</div>
+<div id="glossaryOverlay" onclick="toggleGlossaryDrawer()"></div>
+
+<!-- TOAST (item 14) -->
+<div id="toast"></div>
+
+
+<script>
+// ── ROLE FILTERING ──
+const ROLE_LABELS = {general:'General',engineering:'Engineering',product:'Product',data:'Data / Analytics',admin:'Admin / IT'};
+const ROLE_DIMS = {
+  general:     () => false,
+  engineering: (r) => r==='product',
+  product:     (r) => r==='engineering'||r==='data'||r==='admin',
+  data:        (r) => r==='engineering'||r==='admin',
+  admin:       (r) => r==='engineering'||r==='data'
+};
+
+function setRole(role, btn) {
+  document.querySelectorAll('.role-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  localStorage.setItem('tse_role', role);
+  applyRoleDim(role);
+  const ind = document.getElementById('navRoleIndicator');
+  const lbl = document.getElementById('navRoleLabel');
+  // Role banner (item 3)
+  const banner = document.getElementById('roleBanner');
+  if (role==='general') {
+    ind.classList.remove('visible');
+    if (banner) { banner.textContent=''; banner.classList.remove('visible'); }
+  } else {
+    lbl.textContent=ROLE_LABELS[role];
+    ind.classList.add('visible');
+    if (banner) {
+      banner.innerHTML = `Showing content for: <strong>${ROLE_LABELS[role]}</strong> — click any role to change`;
+      banner.classList.add('visible');
+    }
+  }
+}
+function applyRoleDim(role) {
+  document.querySelectorAll('[data-role]').forEach(card => {
+    const r = card.getAttribute('data-role');
+    card.classList.toggle('role-dim', ROLE_DIMS[role] ? ROLE_DIMS[role](r) : false);
+  });
+}
+function resetRole() {
+  const btn = document.querySelector('.role-btn[data-role="general"]');
+  setRole('general', btn);
+}
+// Restore saved role
+(function(){
+  const saved = localStorage.getItem('tse_role');
+  if (saved && saved!=='general') {
+    const btn = document.querySelector(`.role-btn[data-role="${saved}"]`);
+    if(btn) setRole(saved, btn);
+  }
+})();
+
+// ── CDW TABS ──
+function switchCDW(id, btn) {
+  document.querySelectorAll('.cdw-tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.cdw-tab-content').forEach(c=>c.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('cdw-'+id).classList.add('active');
+}
+
+// ── ACCORDION ──
+function toggleAcc(trigger) {
+  const body = trigger.nextElementSibling;
+  const isOpen = trigger.classList.contains('open');
+  trigger.classList.toggle('open', !isOpen);
+  body.classList.toggle('open', !isOpen);
+}
+
+// ── GLOSSARY (inline toggle) ──
+function toggleGlossary() {
+  const btn = document.getElementById('glossaryToggle');
+  const grid = document.getElementById('glossaryGrid');
+  const open = grid.classList.toggle('open');
+  btn.classList.toggle('open', open);
+  btn.setAttribute('aria-expanded', open);
+}
+
+// ── CHECKLIST ──
+function toggleCheck(item) {
+  const cb = item.querySelector('input[type=checkbox]');
+  if(event.target===cb) return;
+  cb.checked = !cb.checked;
+  item.classList.toggle('done', cb.checked);
+  updateCheckProgress();
+  saveCheckState();
+}
+document.querySelectorAll('.check-item input[type=checkbox]').forEach(cb=>{
+  cb.addEventListener('change', ()=>{
+    cb.closest('.check-item').classList.toggle('done',cb.checked);
+    updateCheckProgress();
+    saveCheckState();
+  });
+});
+function updateCheckProgress() {
+  const all = document.querySelectorAll('.check-item input[type=checkbox]');
+  const done = [...all].filter(c=>c.checked).length;
+  const pct = all.length ? Math.round(done/all.length*100) : 0;
+  document.getElementById('checkBar').style.width = pct+'%';
+  document.getElementById('checkLabel').textContent = `${done} / ${all.length} complete`;
+}
+function saveCheckState() {
+  const state = {};
+  document.querySelectorAll('.check-item input[type=checkbox]').forEach(cb=>{state[cb.id]=cb.checked;});
+  localStorage.setItem('tse_checklist', JSON.stringify(state));
+}
+function loadCheckState() {
+  // item 14: restore from URL ?checks= param
+  const urlParams = new URLSearchParams(window.location.search);
+  const urlChecks = urlParams.get('checks');
+  if (urlChecks) {
+    const cbs = document.querySelectorAll('.check-item input[type=checkbox]');
+    cbs.forEach((cb, i) => {
+      const checked = urlChecks[i] === '1';
+      cb.checked = checked;
+      cb.closest('.check-item').classList.toggle('done', checked);
+    });
+    updateCheckProgress();
+    return;
+  }
+  try {
+    const state = JSON.parse(localStorage.getItem('tse_checklist')||'{}');
+    Object.entries(state).forEach(([id,checked])=>{
+      const cb = document.getElementById(id);
+      if(cb){ cb.checked=checked; cb.closest('.check-item').classList.toggle('done',checked); }
+    });
+  } catch(e){}
+  updateCheckProgress();
+}
+
+// ── CHECKLIST EXPORT (item 14) ──
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 2500);
+}
+function copyChecklistMarkdown() {
+  const lines = [];
+  document.querySelectorAll('.check-item').forEach(item => {
+    const cb = item.querySelector('input[type=checkbox]');
+    const lbl = item.querySelector('label');
+    const text = lbl ? lbl.innerText.trim() : '';
+    lines.push((cb && cb.checked ? '- [x] ' : '- [ ] ') + text);
+  });
+  navigator.clipboard.writeText(lines.join('\n')).then(()=>showToast('✓ Checklist copied as Markdown!')).catch(()=>showToast('Copy failed — try again'));
+}
+function shareChecklist() {
+  const cbs = document.querySelectorAll('.check-item input[type=checkbox]');
+  const encoded = [...cbs].map(cb=>cb.checked?'1':'0').join('');
+  const url = window.location.href.split('?')[0] + '?checks=' + encoded;
+  navigator.clipboard.writeText(url).then(()=>showToast('🔗 Shareable link copied!')).catch(()=>showToast('Copy failed — try again'));
+}
+
+// ── PROGRESS SIDEBAR (scroll spy) ──
+const phases = ['align','foundation','build','validate','launch'];
+function updateProgressSidebar() {
+  const scrollY = window.scrollY + 120;
+  let active = phases[0];
+  phases.forEach(id => {
+    const el = document.getElementById(id);
+    if (el && el.offsetTop <= scrollY) active = id;
+  });
+  phases.forEach(id => {
+    const dot = document.getElementById('prog-'+id);
+    if (!dot) return;
+    const idx = phases.indexOf(id);
+    const activeIdx = phases.indexOf(active);
+    dot.classList.toggle('active', id===active);
+    dot.classList.toggle('done', idx < activeIdx);
+  });
+}
+
+// ── BACK TO TOP (item 6) ──
+function updateBackToTop() {
+  const btn = document.getElementById('backToTop');
+  if (!btn) return;
+  if (window.scrollY > 400) btn.classList.add('visible');
+  else btn.classList.remove('visible');
+}
+
+// ── NAV ACTIVE STATE ON SCROLL (item 4) ──
+function updateNavActive() {
+  const scrollY = window.scrollY + 80;
+  const sections = ['align','foundation','build','validate','launch','resources','restapi'];
+  let active = null;
+  sections.forEach(id => {
+    const el = document.getElementById(id);
+    if (el && el.offsetTop <= scrollY) active = id;
+  });
+  document.querySelectorAll('.nav-links a').forEach(a => {
+    const href = a.getAttribute('href');
+    a.classList.toggle('active', href === '#' + active);
+  });
+}
+
+// ── BUILD SUB-NAV SCROLL SPY (item 5) ──
+function updateBuildSubnav() {
+  const subIds = ['build-sdk','build-auth','build-component','build-events','build-spotter','build-styling'];
+  const scrollY = window.scrollY + 100;
+  let active = null;
+  subIds.forEach(id => {
+    const el = document.getElementById(id);
+    if (el && el.offsetTop <= scrollY) active = id;
+  });
+  document.querySelectorAll('.build-subnav a').forEach(a => {
+    const href = a.getAttribute('href');
+    a.classList.toggle('active', href === '#' + active);
+  });
+}
+
+window.addEventListener('scroll', ()=>{
+  updateProgressSidebar();
+  updateBackToTop();
+  updateNavActive();
+  updateBuildSubnav();
+}, {passive:true});
+updateProgressSidebar();
+updateNavActive();
+
+
+// ── COPY BUTTONS (item 10) ──
+function copyCode(btn) {
+  const wrap = btn.closest('.code-wrap');
+  const block = wrap ? wrap.querySelector('.code-block') : null;
+  if (!block) return;
+  navigator.clipboard.writeText(block.innerText).then(()=>{
+    btn.textContent = '✓ Copied!';
+    btn.classList.add('copied');
+    setTimeout(()=>{ btn.textContent='Copy'; btn.classList.remove('copied'); }, 2000);
+  }).catch(()=>{});
+}
+function initCopyButtons() {
+  document.querySelectorAll('.code-wrap').forEach(wrap => {
+    if (wrap.querySelector('.copy-btn')) return;
+    const btn = document.createElement('button');
+    btn.className = 'copy-btn';
+    btn.textContent = 'Copy';
+    btn.onclick = () => copyCode(btn);
+    wrap.appendChild(btn);
+  });
+}
+
+// ── GLOSSARY DRAWER (item 15) ──
+function toggleGlossaryDrawer() {
+  const drawer = document.getElementById('glossaryDrawer');
+  const overlay = document.getElementById('glossaryOverlay');
+  const isOpen = drawer.classList.toggle('open');
+  drawer.setAttribute('aria-hidden', !isOpen);
+  overlay.classList.toggle('visible', isOpen);
+  if (isOpen) populateGlossaryDrawer();
+}
+const GLOSSARY_TERMS = [
+  {term:'Visual Embed SDK', def:'The official JavaScript library (<code>@thoughtspot/visual-embed-sdk</code>) for embedding ThoughtSpot components inside iFrames with auth, events, and customization.'},
+  {term:'TrustedAuthTokenCookieless', def:'The recommended production auth mode. Passes a short-lived token on every request — no cross-site cookies, no SameSite browser issues.'},
+  {term:'TML (ThoughtSpot Modeling Language)', def:'YAML-based representation of semantic models, Liveboards, and Answers. Enables version control and automated Dev → QA → Prod promotion.'},
+  {term:'RLS (Row-Level Security)', def:'Ensures each embedded user sees only the rows of data they are authorized to view, enforced via ThoughtSpot group/attribute rules.'},
+  {term:'CLS (Column-Level Security)', def:'Restricts access to specific columns (e.g., PII, cost, salary) via column tags and group-based permissions.'},
+  {term:'Token Variable Values', def:'Pass formula variable values and runtime parameters inside the JWT via <code>token/custom</code> to scope data per user — the standard way to apply per-request data context without managing RLS rules.'},
+  {term:'JIT Provisioning', def:'Just-in-Time user creation. Set <code>auto_create: true</code> in the token API — ThoughtSpot automatically creates the user on first authenticated embed load.'},
+  {term:'CSP (Content Security Policy)', def:'Browser security header controlling which origins can frame ThoughtSpot. Your app domain must be added to the CSP Visual Embed Hosts allowlist.'},
+  {term:'CORS', def:'Cross-Origin Resource Sharing — controls which origins can make REST API requests to ThoughtSpot. Your app domain must be in the CORS allowlist.'},
+  {term:'Runtime Filters', def:'Dynamic filter values passed from your host app into an embedded ThoughtSpot component at render time, scoping content to the current user\'s context.'},
+  {term:'EmbedEvent / HostEvent', def:'Bi-directional event system. EmbedEvents fire from ThoughtSpot into your app (Load, Error, Data). HostEvents fire from your app into the embed (UpdateRuntimeFilters).'},
+  {term:'Orgs (Multi-tenant isolation)', def:'Logical tenant segmentation within a single ThoughtSpot instance. Higher isolation than RLS-only; often combined with RLS for per-user scoping within an org.'},
+  {term:'Liveboard', def:'An interactive dashboard containing multiple visualizations (charts, tables, KPIs). The primary content surface for embedded analytics.'},
+  {term:'Model (Semantic Layer)', def:'The ThoughtSpot semantic layer built over your CDW tables. Defines joins, column names, synonyms, aggregations, and security — makes Search and AI work reliably.'},
+  {term:'SpotterEmbed', def:'SDK component class for embedding ThoughtSpot\'s AI Analyst (Spotter) — the conversational, natural-language query interface.'},
+  {term:'Developer Playground', def:'Interactive embed experimentation environment at <code>Develop > Playground</code> inside your instance. Generate embed code, test auth, preview CSS changes live.'},
+  {term:'SpotterCode', def:'An MCP (Model Context Protocol) tool that connects AI-native IDEs (Cursor, VS Code, Claude Code) directly to ThoughtSpot SDK docs, REST API specs, and code samples.'},
+  {term:'Trusted Authentication', def:'ThoughtSpot\'s recommended auth pattern for embedded deployments — your backend generates a short-lived token and passes it to the SDK so the user never needs a ThoughtSpot login.'},
+];
+function populateGlossaryDrawer() {
+  const content = document.getElementById('glossaryDrawerContent');
+  if (!content) return;
+  if (content.children.length > 0) return;
+  GLOSSARY_TERMS.forEach(({term, def}) => {
+    const item = document.createElement('dl');
+    item.className = 'glossary-drawer-term';
+    item.innerHTML = `<dt>${term}</dt><dd>${def}</dd>`;
+    content.appendChild(item);
+  });
+}
+function filterGlossary(query) {
+  const q = query.toLowerCase();
+  document.querySelectorAll('#glossaryDrawerContent .glossary-drawer-term').forEach(term => {
+    const text = term.textContent.toLowerCase();
+    term.style.display = text.includes(q) ? '' : 'none';
+  });
+}
+
+// ── ON DOM READY ──
+document.addEventListener('DOMContentLoaded', ()=>{
+  loadCheckState();
+  initCopyButtons();
+});
+// Also call loadCheckState immediately for inline scripts that already ran
+loadCheckState();
+</script>
+</body>
+</html>

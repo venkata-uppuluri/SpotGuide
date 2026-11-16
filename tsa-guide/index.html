@@ -1,0 +1,1509 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ThoughtSpot Analytics — SpotGuide</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --ts-dark: #080628;
+      --ts-navy: #1B3E61;
+      --ts-blue: #346DC9;
+      --ts-blue-dark: #275595;
+      --ts-cyan: #04D1FF;
+      --ts-cyan-tint: #9FE9FF;
+      --ts-light: #EEF7FF;
+      --ts-gray: #5a7091;
+      --ts-border: #cdd8e8;
+      --ts-green: #6DD257;
+      --ts-yellow: #FFC052;
+      --ts-red: #FF92A8;
+      --ts-purple: #3D2B94;
+      --ts-blurple: #7146FB;
+      --radius: 12px;
+      --shadow: 0 2px 16px rgba(52,109,201,0.10);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Geist Mono','SF Mono','Fira Code',monospace; background:#fff; color:var(--ts-dark); line-height:1.6; }
+
+    /* ── NAV ── */
+    nav { position:sticky; top:0; z-index:100; background:rgba(8,6,40,0.97); backdrop-filter:blur(8px); border-bottom:1px solid rgba(4,209,255,0.15); padding:0 2rem; display:flex; align-items:center; justify-content:space-between; height:60px; gap:1rem; }
+    .nav-brand { display:flex; align-items:center; gap:10px; font-weight:700; font-size:1rem; color:#fff; text-decoration:none; flex-shrink:0; }
+    .nav-brand .dot { color:var(--ts-cyan); }
+    .nav-links { display:flex; gap:1.5rem; list-style:none; }
+    .nav-links a { font-size:0.85rem; color:rgba(255,255,255,0.6); text-decoration:none; font-weight:500; transition:color 0.2s; }
+    .nav-links a:hover { color:var(--ts-cyan); }
+    .nav-role-indicator { font-size:0.75rem; color:var(--ts-cyan); display:none; align-items:center; gap:0.4rem; white-space:nowrap; flex-shrink:0; }
+    .nav-role-indicator.visible { display:flex; }
+    .nav-role-change { color:rgba(255,255,255,0.45); cursor:pointer; background:none; border:none; font-family:inherit; font-size:0.75rem; text-decoration:underline; }
+    .nav-role-change:hover { color:#fff; }
+
+    /* ── HERO ── */
+    .hero { background:linear-gradient(135deg,var(--ts-dark) 0%,#0d1a2e 50%,#122246 100%); color:#fff; padding:5rem 2rem 4rem; text-align:center; position:relative; overflow:hidden; }
+    .hero::before { content:''; position:absolute; inset:0; background:radial-gradient(ellipse at 70% 50%,rgba(4,209,255,0.08) 0%,transparent 60%),radial-gradient(ellipse at 30% 80%,rgba(52,109,201,0.12) 0%,transparent 50%); pointer-events:none; }
+    .hero-badge { display:inline-block; background:rgba(4,209,255,0.12); border:1px solid rgba(4,209,255,0.3); border-radius:999px; padding:0.3rem 1rem; font-size:0.78rem; font-weight:600; letter-spacing:0.08em; text-transform:uppercase; margin-bottom:1.5rem; color:var(--ts-cyan); }
+    .hero h1 { font-size:clamp(2rem,5vw,3.2rem); font-weight:800; line-height:1.15; max-width:760px; margin:0 auto 1.2rem; }
+    .hero h1 em { font-style:normal; color:var(--ts-cyan); }
+    .hero p { font-size:1.1rem; color:rgba(255,255,255,0.65); max-width:580px; margin:0 auto 2.5rem; }
+    .hero-ctas { display:flex; flex-wrap:wrap; gap:1rem; justify-content:center; }
+    .btn { display:inline-flex; align-items:center; gap:0.4rem; padding:0.7rem 1.4rem; border-radius:8px; font-weight:600; font-size:0.9rem; font-family:inherit; text-decoration:none; transition:all 0.2s; cursor:pointer; border:none; }
+    .btn-primary { background:var(--ts-cyan); color:var(--ts-dark); }
+    .btn-primary:hover { background:var(--ts-cyan-tint); transform:translateY(-1px); }
+    .btn-outline { background:transparent; border:1.5px solid rgba(4,209,255,0.35); color:#fff; }
+    .btn-outline:hover { background:rgba(4,209,255,0.08); border-color:var(--ts-cyan); }
+
+    /* ── PHASE TIMELINE ── */
+    .timeline-section { background:var(--ts-dark); padding:3rem 2rem; text-align:center; border-bottom:1px solid rgba(4,209,255,0.1); }
+    .timeline-label { font-size:0.78rem; font-weight:600; color:var(--ts-cyan); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:1.5rem; }
+    .timeline { display:flex; flex-wrap:wrap; justify-content:center; gap:0; max-width:900px; margin:0 auto; }
+    .phase-step { display:flex; flex-direction:column; align-items:center; flex:1; min-width:140px; position:relative; text-decoration:none; color:inherit; cursor:pointer; }
+    .phase-step:hover .phase-num { transform:scale(1.12); box-shadow:0 0 0 4px rgba(4,209,255,0.25); }
+    .phase-step:hover .phase-name { color:var(--ts-cyan); }
+    .phase-step:not(:last-child)::after { content:''; position:absolute; top:22px; left:60%; width:80%; height:2px; background:linear-gradient(90deg,var(--ts-blue),var(--ts-cyan)); }
+    .phase-num { width:44px; height:44px; background:linear-gradient(135deg,var(--ts-blue),var(--ts-cyan)); color:var(--ts-dark); border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:0.9rem; margin-bottom:0.6rem; position:relative; z-index:1; transition:transform 0.2s,box-shadow 0.2s; }
+    .phase-name { font-weight:700; font-size:0.9rem; color:#fff; transition:color 0.2s; }
+    .phase-weeks { font-size:0.75rem; color:rgba(255,255,255,0.5); margin-top:0.2rem; }
+    .start-here-phase{display:inline-block;background:var(--ts-cyan);color:var(--ts-dark);font-size:.68rem;font-weight:800;padding:.2rem .65rem;border-radius:999px;margin-top:.4rem;text-transform:uppercase;letter-spacing:.05em;animation:phasePulse 2.2s ease-in-out infinite;}
+    @keyframes phasePulse{0%,100%{box-shadow:0 0 0 0 rgba(4,209,255,0.5);}50%{box-shadow:0 0 0 6px rgba(4,209,255,0);}}
+
+    /* ── ROLE SELECTOR ── */
+    .role-selector-wrap { background:var(--ts-dark); border-bottom:2px solid rgba(4,209,255,0.12); padding:1.8rem 2rem; text-align:center; }
+    .role-selector-label { font-size:0.75rem; font-weight:700; text-transform:uppercase; letter-spacing:0.1em; color:rgba(255,255,255,0.45); margin-bottom:1rem; }
+    .role-btns { display:flex; flex-wrap:wrap; gap:0.7rem; justify-content:center; }
+    .role-btn { display:inline-flex; align-items:center; gap:0.5rem; padding:0.55rem 1.2rem; border:1.5px solid rgba(255,255,255,0.18); border-radius:999px; background:transparent; font-family:inherit; font-size:0.85rem; font-weight:600; color:rgba(255,255,255,0.6); cursor:pointer; transition:all 0.15s; }
+    .role-btn:hover { border-color:var(--ts-cyan); color:#fff; }
+    .role-btn.active { background:var(--ts-cyan); border-color:var(--ts-cyan); color:var(--ts-dark); }
+    .card.role-dim { opacity:0.2; pointer-events:none; filter:grayscale(0.4); }
+
+    /* ── SECTION WRAPPER ── */
+    .section { padding:4rem 2rem; max-width:1100px; margin:0 auto; }
+    .section-title { font-size:1.6rem; font-weight:800; color:var(--ts-dark); margin-bottom:0.4rem; }
+    .section-sub { color:var(--ts-gray); font-size:0.95rem; margin-bottom:1rem; }
+    .divider { border:none; border-top:1px solid var(--ts-border); margin:4rem 0; }
+
+    /* ── EFFORT META ── */
+    .effort-meta { display:flex; flex-wrap:wrap; gap:1.2rem; margin-bottom:2rem; padding:0.6rem 1rem; background:rgba(52,109,201,0.04); border:1px solid var(--ts-border); border-radius:8px; font-size:0.77rem; color:var(--ts-gray); }
+    .effort-meta span { display:flex; align-items:center; gap:0.3rem; }
+
+    /* ── CALLOUT BOX ── */
+    .callout { background:rgba(52,109,201,0.06); border-left:4px solid var(--ts-blue); border-radius:0 var(--radius) var(--radius) 0; padding:1.1rem 1.4rem; margin-bottom:2rem; font-size:0.92rem; color:var(--ts-navy); }
+    .callout.warning { background:rgba(255,192,82,0.08); border-color:var(--ts-yellow); color:var(--ts-navy); }
+    .callout.critical { background:rgba(255,146,168,0.08); border-color:var(--ts-red); color:var(--ts-navy); }
+    .callout.success { background:rgba(109,210,87,0.08); border-color:var(--ts-green); color:var(--ts-navy); }
+    .callout.info { background:rgba(52,109,201,0.05); border-color:var(--ts-blue); color:var(--ts-navy); }
+    .callout strong { display:block; margin-bottom:0.3rem; font-size:0.95rem; }
+
+    /* ── CARD GRID ── */
+    .card-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:1.2rem; }
+    .card { border:1px solid var(--ts-border); border-radius:var(--radius); padding:1.4rem; background:#fff; box-shadow:var(--shadow); transition:transform 0.2s,box-shadow 0.2s,opacity 0.2s,filter 0.2s; text-decoration:none; color:inherit; display:flex; flex-direction:column; gap:0.5rem; }
+    .card:hover { transform:translateY(-3px); box-shadow:0 8px 24px rgba(4,209,255,0.12); }
+    .card-icon { font-size:1.6rem; }
+    .card-tag { display:inline-block; font-size:0.7rem; font-weight:700; padding:0.15rem 0.5rem; border-radius:999px; text-transform:uppercase; letter-spacing:0.05em; }
+    .tag-admin { background:rgba(52,109,201,0.1); color:var(--ts-blue); }
+    .tag-analyst { background:rgba(255,146,168,0.12); color:var(--ts-blue-dark); }
+    .tag-data { background:rgba(109,210,87,0.12); color:var(--ts-blue-dark); }
+    .tag-all { background:rgba(113,70,251,0.1); color:var(--ts-blurple); }
+    .tag-critical { background:rgba(255,146,168,0.15); color:var(--ts-blue-dark); }
+    .card h3 { font-size:0.95rem; font-weight:700; color:var(--ts-dark); }
+    .card p { font-size:0.83rem; color:var(--ts-gray); line-height:1.5; }
+    .card-link { font-size:0.8rem; font-weight:600; color:var(--ts-blue); text-decoration:none; margin-top:auto; }
+    .card-link:hover { color:var(--ts-cyan); text-decoration:underline; }
+
+    /* ── ROLES TABLE ── */
+    .roles-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); gap:1.2rem; margin-top:1rem; }
+    .role-card { border:1px solid var(--ts-border); border-radius:var(--radius); padding:1.3rem; background:#fff; box-shadow:var(--shadow); }
+    .role-card .role-title { font-weight:700; font-size:0.95rem; margin-bottom:0.8rem; display:flex; align-items:center; gap:0.5rem; }
+    .role-card ul { list-style:none; padding:0; }
+    .role-card ul li { font-size:0.83rem; color:var(--ts-gray); padding:0.25rem 0; border-bottom:1px solid var(--ts-border); display:flex; align-items:flex-start; gap:0.4rem; }
+    .role-card ul li:last-child { border-bottom:none; }
+    .role-card ul li::before { content:"→"; color:var(--ts-cyan); flex-shrink:0; }
+
+    /* ── GLOSSARY ── */
+    /* ── CONCEPTS DRAWER ── */
+    #tsaConceptsBtn{position:fixed;bottom:2rem;left:2rem;z-index:200;background:#fff;color:var(--ts-blue);border:1.5px solid var(--ts-blue);border-radius:999px;padding:.45rem 1.1rem;font-family:inherit;font-size:.8rem;font-weight:700;cursor:pointer;box-shadow:0 2px 10px rgba(52,109,201,0.15);transition:all .15s;}
+    #tsaConceptsBtn:hover{background:var(--ts-light);box-shadow:0 4px 14px rgba(52,109,201,0.22);}
+    #tsaConceptsDrawer{position:fixed;left:0;top:0;height:100%;width:340px;max-width:90vw;background:#fff;border-right:1.5px solid var(--ts-border);z-index:300;transform:translateX(-100%);transition:transform .25s;overflow-y:auto;padding:1.5rem;box-shadow:4px 0 24px rgba(52,109,201,0.1);}
+    #tsaConceptsDrawer.open{transform:translateX(0);}
+    .tsa-concepts-hdr{display:flex;align-items:center;gap:.6rem;margin-bottom:1.2rem;padding-bottom:1rem;border-bottom:1.5px solid var(--ts-border);flex-wrap:wrap;}
+    .tsa-concepts-hdr span{font-weight:800;color:var(--ts-dark);font-size:1rem;flex:1;}
+    #tsaConceptsSearch{flex:1;min-width:110px;background:var(--ts-light);border:1px solid var(--ts-border);border-radius:6px;padding:.35rem .7rem;color:var(--ts-dark);font-family:inherit;font-size:.8rem;outline:none;}
+    #tsaConceptsSearch:focus{border-color:var(--ts-blue);}
+    .tsa-concepts-hdr button{background:none;border:none;color:var(--ts-gray);font-size:1.1rem;cursor:pointer;line-height:1;padding:.2rem;}
+    .tsa-concepts-hdr button:hover{color:var(--ts-dark);}
+    .tsa-concept-term{border-bottom:1px solid var(--ts-border);padding:.75rem 0;}
+    .tsa-concept-term:last-child{border-bottom:none;}
+    .tsa-concept-term dt{font-weight:700;font-size:.87rem;color:var(--ts-blue);margin-bottom:.25rem;}
+    .tsa-concept-term dd{font-size:.79rem;color:var(--ts-gray);line-height:1.5;margin:0;}
+    #tsaConceptsOverlay{position:fixed;inset:0;background:rgba(0,0,0,0.25);z-index:299;display:none;}
+    #tsaConceptsOverlay.visible{display:block;}
+    @media(max-width:640px){#tsaConceptsBtn{bottom:1rem;left:1rem;}}
+
+    /* ── CHECKLIST ── */
+    .checklist-group { margin-bottom:2rem; }
+    .checklist-group h3 { font-size:0.9rem; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; color:var(--ts-blue); margin-bottom:0.8rem; }
+    .checklist-items { display:flex; flex-direction:column; gap:0.5rem; }
+    .check-item { display:flex; align-items:flex-start; gap:0.75rem; padding:0.7rem 1rem; background:#fff; border:1px solid var(--ts-border); border-radius:8px; font-size:0.88rem; cursor:pointer; transition:background 0.15s; }
+    .check-item:hover { background:var(--ts-light); }
+    .check-item input[type="checkbox"] { width:16px; height:16px; margin-top:2px; accent-color:var(--ts-cyan); flex-shrink:0; cursor:pointer; }
+    .check-item label { cursor:pointer; line-height:1.4; }
+
+    /* ── STEP LIST ── */
+    .step-list { display:flex; flex-direction:column; gap:1.2rem; }
+    .step { display:flex; gap:1.2rem; padding:1.2rem 1.4rem; background:#fff; border:1px solid var(--ts-border); border-radius:var(--radius); box-shadow:var(--shadow); }
+    .step-num { width:32px; height:32px; flex-shrink:0; background:linear-gradient(135deg,var(--ts-blue),var(--ts-cyan)); color:var(--ts-dark); border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:0.85rem; }
+    .step-content h4 { font-size:0.95rem; font-weight:700; margin-bottom:0.3rem; }
+    .step-content p { font-size:0.85rem; color:var(--ts-gray); }
+
+    /* ── CDW TABS ── */
+    .cdw-tabs-wrap { margin-bottom:2rem; }
+    .cdw-header { margin-bottom:0.8rem; }
+    .cdw-header h3 { font-size:1rem; font-weight:800; color:var(--ts-dark); }
+    .cdw-header p { font-size:0.85rem; color:var(--ts-gray); }
+    .cdw-tab-nav { display:flex; flex-wrap:wrap; border-bottom:2px solid var(--ts-border); margin-bottom:1.5rem; gap:0; }
+    .cdw-tab-btn { padding:0.55rem 1.1rem; background:none; border:none; font-family:inherit; font-size:0.85rem; font-weight:600; color:var(--ts-gray); cursor:pointer; border-bottom:2px solid transparent; margin-bottom:-2px; transition:all 0.15s; }
+    .cdw-tab-btn:hover { color:var(--ts-blue); }
+    .cdw-tab-btn.active { color:var(--ts-blue); border-bottom-color:var(--ts-blue); }
+    .cdw-tab-content { display:none; }
+    .cdw-tab-content.active { display:block; }
+    .cdw-steps { display:flex; flex-direction:column; gap:0.7rem; }
+    .cdw-step { display:flex; gap:1rem; padding:1rem 1.2rem; background:#fff; border:1px solid var(--ts-border); border-radius:8px; }
+    .cdw-step-num { width:24px; height:24px; flex-shrink:0; background:var(--ts-blue); color:#fff; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:0.72rem; font-weight:700; margin-top:2px; }
+    .cdw-step-body p { font-size:0.84rem; color:var(--ts-gray); line-height:1.5; }
+    code { font-family:inherit; background:rgba(52,109,201,0.08); border:1px solid rgba(52,109,201,0.15); border-radius:4px; padding:0.1rem 0.4rem; font-size:0.82rem; color:var(--ts-blue-dark); }
+    pre { background:var(--ts-dark); color:var(--ts-cyan-tint); border-radius:8px; padding:0.8rem 1rem; font-size:0.8rem; overflow-x:auto; margin:0.5rem 0 0; font-family:inherit; white-space:pre; }
+
+    /* ── TROUBLESHOOTING ── */
+    .trouble-section { background:rgba(255,192,82,0.04); border-top:1px solid var(--ts-border); border-bottom:1px solid var(--ts-border); }
+    .accordion { display:flex; flex-direction:column; gap:0.4rem; margin-bottom:1.5rem; }
+    .accordion-group-label { font-size:0.75rem; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; color:var(--ts-navy); margin:1.2rem 0 0.5rem; display:flex; align-items:center; gap:0.4rem; }
+    .accordion-item { border:1px solid var(--ts-border); border-radius:8px; overflow:hidden; background:#fff; }
+    .accordion-header { display:flex; justify-content:space-between; align-items:center; padding:0.8rem 1.1rem; cursor:pointer; font-size:0.88rem; font-weight:600; color:var(--ts-dark); background:none; border:none; font-family:inherit; width:100%; text-align:left; transition:background 0.15s; }
+    .accordion-header:hover { background:var(--ts-light); }
+    .accordion-header .acc-arrow { transition:transform 0.2s; font-size:0.7rem; flex-shrink:0; }
+    .accordion-header.open .acc-arrow { transform:rotate(180deg); }
+    .accordion-body { display:none; padding:0 1.1rem 1rem; font-size:0.84rem; color:var(--ts-gray); line-height:1.6; border-top:1px solid var(--ts-border); }
+    .accordion-body.open { display:block; }
+    .accordion-body ul { padding-left:1.2rem; margin-top:0.6rem; }
+    .accordion-body ul li { margin-bottom:0.35rem; }
+    .accordion-body strong { color:var(--ts-dark); }
+
+    /* ── SPOTTER ── */
+    .spotter-section { background:linear-gradient(135deg,var(--ts-dark) 0%,var(--ts-purple) 60%,var(--ts-blurple) 100%); color:#fff; border-radius:16px; padding:3rem 2.5rem; margin:2rem 0; position:relative; overflow:hidden; }
+    .spotter-section::before { content:''; position:absolute; inset:0; background:radial-gradient(ellipse at 80% 20%,rgba(4,209,255,0.12) 0%,transparent 50%); pointer-events:none; }
+    .spotter-section h2 { font-size:1.7rem; font-weight:800; margin-bottom:0.5rem; }
+    .spotter-section > p { color:rgba(255,255,255,0.65); font-size:0.97rem; max-width:580px; margin-bottom:2rem; }
+    .spotter-cards { display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:1rem; margin-bottom:2rem; }
+    .spotter-card { background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.15); border-radius:10px; padding:1.1rem; }
+    .spotter-card h4 { font-size:0.9rem; font-weight:700; margin-bottom:0.3rem; }
+    .spotter-card p { font-size:0.82rem; color:rgba(255,255,255,0.6); margin-bottom:0; }
+    .spotter-sub-label { font-size:0.72rem; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; color:var(--ts-cyan); margin:2rem 0 0.7rem; }
+    .spotter-sub-h3 { font-size:1.05rem; font-weight:800; margin-bottom:1rem; }
+    /* prompts table */
+    .prompts-table-wrap { overflow-x:auto; margin:0 0 0.5rem; border-radius:10px; border:1px solid rgba(255,255,255,0.12); }
+    .prompts-table { width:100%; border-collapse:collapse; font-size:0.82rem; }
+    .prompts-table th { background:rgba(255,255,255,0.08); color:rgba(255,255,255,0.7); padding:0.65rem 1rem; text-align:left; font-size:0.75rem; text-transform:uppercase; letter-spacing:0.05em; border-bottom:1px solid rgba(255,255,255,0.12); }
+    .prompts-table td { padding:0.65rem 1rem; border-bottom:1px solid rgba(255,255,255,0.07); vertical-align:top; color:rgba(255,255,255,0.85); }
+    .prompts-table tr:last-child td { border-bottom:none; }
+    .good-prompt { color:#6DD257; font-weight:600; }
+    .bad-prompt { color:#FF92A8; }
+    .why-cell { color:rgba(255,255,255,0.55); font-size:0.77rem; }
+    /* spotter accordion */
+    .spotter-accordion .accordion-item { background:rgba(255,255,255,0.07); border-color:rgba(255,255,255,0.12); }
+    .spotter-accordion .accordion-header { color:#fff; }
+    .spotter-accordion .accordion-header:hover { background:rgba(255,255,255,0.05); }
+    .spotter-accordion .accordion-body { color:rgba(255,255,255,0.65); border-top-color:rgba(255,255,255,0.1); }
+    .spotter-accordion .accordion-body strong { color:#fff; }
+    /* limitations callout inside spotter */
+    .spotter-limitations { background:rgba(255,255,255,0.07); border:1px solid rgba(255,255,255,0.15); border-radius:10px; padding:1.2rem 1.4rem; }
+    .spotter-limitations ul { padding-left:1.2rem; }
+    .spotter-limitations ul li { font-size:0.84rem; color:rgba(255,255,255,0.7); margin-bottom:0.4rem; line-height:1.5; }
+
+    /* ── MODEL TABLE ── */
+    .model-table { width:100%; border-collapse:collapse; font-size:0.88rem; margin:1.5rem 0; }
+    .model-table th { background:var(--ts-dark); color:#fff; padding:0.7rem 1rem; text-align:left; font-size:0.8rem; text-transform:uppercase; letter-spacing:0.05em; }
+    .model-table th:first-child { border-radius:8px 0 0 0; }
+    .model-table th:last-child { border-radius:0 8px 0 0; }
+    .model-table td { padding:0.7rem 1rem; border-bottom:1px solid var(--ts-border); vertical-align:top; }
+    .model-table tr:last-child td { border-bottom:none; }
+    .model-table tr:nth-child(even) td { background:#f9fafb; }
+
+    /* ── SAMPLE DATA CTA ── */
+    .sample-cta { background:linear-gradient(135deg,rgba(4,209,255,0.07),rgba(52,109,201,0.07)); border:2px solid rgba(4,209,255,0.28); border-radius:var(--radius); padding:1.8rem 2rem; margin:2rem 0; }
+    .sample-cta-label { font-size:0.72rem; font-weight:700; text-transform:uppercase; letter-spacing:0.09em; color:var(--ts-cyan); margin-bottom:0.4rem; }
+    .sample-cta h4 { font-size:1.05rem; font-weight:800; color:var(--ts-dark); margin-bottom:0.4rem; }
+    .sample-cta p { font-size:0.87rem; color:var(--ts-gray); margin-bottom:0.9rem; }
+    .sample-cta ol { padding-left:1.4rem; margin-bottom:1.2rem; font-size:0.85rem; color:var(--ts-dark); }
+    .sample-cta ol li { margin-bottom:0.3rem; font-family:inherit; }
+
+    /* ── TML CARD ── */
+    .tml-card { border:1.5px dashed var(--ts-border); border-radius:var(--radius); padding:1.5rem; margin-top:2rem; background:rgba(113,70,251,0.03); }
+    .tml-card-label { font-size:0.72rem; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; color:var(--ts-blurple); margin-bottom:0.4rem; }
+    .tml-card h4 { font-size:1rem; font-weight:800; color:var(--ts-dark); margin-bottom:0.4rem; }
+    .tml-card > p { font-size:0.85rem; color:var(--ts-gray); margin-bottom:0.8rem; }
+    .tml-card ul { padding-left:1.2rem; font-size:0.84rem; color:var(--ts-gray); margin-bottom:1rem; }
+    .tml-card ul li { margin-bottom:0.3rem; }
+
+    /* ── RESOURCES ── */
+    .resource-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:1rem; }
+    .resource-card { display:flex; align-items:flex-start; gap:1rem; padding:1rem 1.2rem; border:1px solid var(--ts-border); border-radius:var(--radius); background:#fff; box-shadow:var(--shadow); text-decoration:none; color:inherit; transition:transform 0.2s; }
+    .resource-card:hover { transform:translateY(-2px); }
+    .resource-icon { font-size:1.5rem; flex-shrink:0; margin-top:2px; }
+    .resource-card h4 { font-size:0.88rem; font-weight:700; color:var(--ts-dark); margin-bottom:0.2rem; }
+    .resource-card p { font-size:0.8rem; color:var(--ts-gray); }
+
+    /* ── METRICS ── */
+    .metrics-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:1rem; margin-top:1rem; }
+    .metric-card { background:#fff; border:1px solid var(--ts-border); border-radius:var(--radius); padding:1.2rem; box-shadow:var(--shadow); text-align:center; }
+    .metric-period { font-size:0.75rem; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; color:var(--ts-cyan); margin-bottom:0.6rem; }
+    .metric-card ul { list-style:none; text-align:left; }
+    .metric-card ul li { font-size:0.82rem; color:var(--ts-gray); padding:0.25rem 0; border-bottom:1px solid #f3f4f6; display:flex; gap:0.4rem; }
+    .metric-card ul li::before { content:"📍"; font-size:0.75rem; }
+    .metric-card ul li:last-child { border-bottom:none; }
+
+    /* ── ANNOUNCEMENT TEMPLATE ── */
+    .announce-wrap { margin-top:2rem; }
+    .announce-toggle-btn { display:flex; align-items:center; gap:0.5rem; background:none; border:1.5px solid var(--ts-border); border-radius:8px; padding:0.6rem 1.1rem; font-family:inherit; font-size:0.85rem; font-weight:600; color:var(--ts-blue); cursor:pointer; transition:all 0.15s; margin-bottom:0.8rem; }
+    .announce-toggle-btn:hover { border-color:var(--ts-blue); background:var(--ts-light); }
+    .announce-toggle-btn .arrow { transition:transform 0.2s; display:inline-block; }
+    .announce-toggle-btn.open .arrow { transform:rotate(180deg); }
+    .announce-card { display:none; background:var(--ts-light); border:1px solid var(--ts-border); border-radius:var(--radius); padding:1.5rem; }
+    .announce-card.open { display:block; }
+    .announce-subject { font-size:0.77rem; font-weight:700; color:var(--ts-gray); text-transform:uppercase; letter-spacing:0.05em; margin-bottom:0.3rem; }
+    .announce-template { font-size:0.84rem; line-height:1.85; color:var(--ts-dark); font-family:inherit; background:#fff; border:1px solid var(--ts-border); border-radius:8px; padding:1.2rem; margin:0.7rem 0 1rem; white-space:pre-wrap; }
+    .ph { color:var(--ts-blurple); font-weight:700; }
+    .copy-btn { display:inline-flex; align-items:center; gap:0.4rem; padding:0.5rem 1rem; background:var(--ts-blue); color:#fff; border:none; border-radius:6px; font-family:inherit; font-size:0.82rem; font-weight:600; cursor:pointer; transition:all 0.15s; }
+    .copy-btn:hover { background:var(--ts-blue-dark); }
+    .copy-btn.copied { background:var(--ts-green); color:var(--ts-dark); }
+
+    /* ── FEEDBACK WIDGET ── */
+
+    /* ── PROGRESS TRACKER ── */
+    .progress-tracker { position:fixed; right:1rem; top:50%; transform:translateY(-50%); z-index:90; display:flex; flex-direction:column; gap:0.25rem; background:rgba(8,6,40,0.93); backdrop-filter:blur(8px); border:1px solid rgba(4,209,255,0.15); border-radius:12px; padding:0.9rem 0.7rem; }
+    .pt-title { font-size:0.6rem; font-weight:700; text-transform:uppercase; letter-spacing:0.09em; color:rgba(255,255,255,0.3); text-align:center; margin-bottom:0.3rem; }
+    .pt-phase { display:flex; align-items:center; gap:0.5rem; cursor:pointer; padding:0.3rem 0.4rem; border-radius:6px; transition:background 0.15s; }
+    .pt-phase:hover { background:rgba(255,255,255,0.07); }
+    .pt-dot { width:18px; height:18px; flex-shrink:0; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:0.62rem; transition:all 0.2s; border:2px solid rgba(255,255,255,0.2); color:transparent; }
+    .pt-phase[data-state="not-started"] .pt-dot { background:transparent; }
+    .pt-phase[data-state="in-progress"] .pt-dot { background:var(--ts-blue); border-color:var(--ts-blue); box-shadow:0 0 0 3px rgba(52,109,201,0.3); color:#fff; }
+    .pt-phase[data-state="complete"] .pt-dot { background:var(--ts-green); border-color:var(--ts-green); color:var(--ts-dark); }
+    .pt-label { font-size:0.7rem; font-weight:600; color:rgba(255,255,255,0.45); white-space:nowrap; }
+    .pt-phase[data-state="in-progress"] .pt-label { color:rgba(255,255,255,0.9); }
+    .pt-phase[data-state="complete"] .pt-label { color:rgba(255,255,255,0.4); text-decoration:line-through; }
+
+    /* ── FOOTER ── */
+    footer { background:var(--ts-dark); color:rgba(255,255,255,0.4); text-align:center; padding:2.5rem 2rem; font-size:0.82rem; margin-top:4rem; border-top:1px solid rgba(4,209,255,0.1); }
+    footer .footer-title { font-weight:600; color:#fff; font-size:0.9rem; margin-bottom:0.3rem; }
+    footer .footer-sub { font-size:0.77rem; margin-bottom:0.4rem; }
+    footer a { color:var(--ts-cyan); text-decoration:none; }
+    footer a:hover { text-decoration:underline; }
+    footer .footer-links { display:flex; flex-wrap:wrap; gap:1.2rem; justify-content:center; margin-top:0.8rem; }
+
+    /* ── TOOLTIPS ── */
+    [data-tooltip] { position: relative; }
+    [data-tooltip]::before {
+      content: attr(data-tooltip);
+      position: absolute;
+      bottom: calc(100% + 8px);
+      left: 50%; transform: translateX(-50%);
+      background: var(--ts-dark);
+      color: rgba(255,255,255,0.9);
+      font-size: 0.72rem; font-weight: 500; line-height: 1.4;
+      white-space: normal; text-align: center;
+      width: max-content; max-width: 200px;
+      padding: 0.4rem 0.7rem;
+      border-radius: 6px;
+      border: 1px solid rgba(4,209,255,0.2);
+      pointer-events: none;
+      opacity: 0; transition: opacity 0.15s 0.1s;
+      z-index: 300;
+    }
+    [data-tooltip]::after {
+      content: '';
+      position: absolute;
+      bottom: calc(100% + 2px);
+      left: 50%; transform: translateX(-50%);
+      border: 5px solid transparent;
+      border-top-color: var(--ts-dark);
+      pointer-events: none;
+      opacity: 0; transition: opacity 0.15s 0.1s;
+      z-index: 300;
+    }
+    [data-tooltip]:hover::before,
+    [data-tooltip]:hover::after { opacity: 1; }
+    [data-tooltip].tip-left::before { left: auto; right: 0; transform: none; }
+    [data-tooltip].tip-left::after  { left: auto; right: 12px; transform: none; }
+    [data-tooltip].tip-below::before { bottom: auto; top: calc(100% + 8px); }
+    [data-tooltip].tip-below::after  { bottom: auto; top: calc(100% + 2px); border-top-color: transparent; border-bottom-color: var(--ts-dark); }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 900px) {
+      .progress-tracker { display:none; }
+    }
+    @media (max-width: 640px) {
+      .phase-step:not(:last-child)::after { display:none; }
+      nav .nav-links { display:none; }
+      .nav-role-indicator { display:none !important; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ═══ NAV ═══ -->
+<nav>
+  <a class="nav-brand" href="#">
+    <span>ThoughtSpot Analytics</span>
+    <span class="dot">·</span>
+    <span style="font-weight:400;color:rgba(255,255,255,0.5)">SpotGuide</span>
+  </a>
+  <ul class="nav-links">
+    <li><a href="#start-here">Start Here</a></li>
+    <li><a href="#foundation">Foundation</a></li>
+    <li><a href="#connect">Connect</a></li>
+    <li><a href="#build">Build</a></li>
+    <li><a href="#launch">Launch</a></li>
+    <li><a href="#spotter">Spotter</a></li>
+    <li><a href="#events">Events</a></li>
+    <li><a href="#resources">Resources</a></li>
+  </ul>
+  <div class="nav-role-indicator" id="navRoleIndicator">
+    <span>Viewing as: <strong id="navRoleLabel"></strong></span>
+    <button class="nav-role-change" onclick="clearRole()" data-tooltip="Reset role filter and show all content" class="tip-below">· Change</button>
+  </div>
+</nav>
+
+
+<!-- ═══ HERO ═══ -->
+<section class="hero">
+  <div class="hero-badge">SpotGuide</div>
+  <h1>Your <em>complete guide</em> to going live with ThoughtSpot Analytics</h1>
+  <p>Everything you need to go from account activation to production — data connections, semantic models, security, user adoption, and AI-powered search — in one place.</p>
+  <div class="hero-ctas">
+    <a href="https://docs.thoughtspot.com" target="_blank" rel="noopener noreferrer" class="btn btn-primary" data-tooltip="Browse the full ThoughtSpot product documentation">📖 Read Docs</a>
+    <a href="https://community.thoughtspot.com" target="_blank" rel="noopener noreferrer" class="btn btn-outline" data-tooltip="Connect with ThoughtSpot practitioners and get answers fast">💬 Join Community</a>
+    <a href="https://training.thoughtspot.com/" target="_blank" rel="noopener noreferrer" class="btn btn-outline" data-tooltip="Access free eLearning paths for every role">🎓 ThoughtSpot University</a>
+  </div>
+</section>
+
+
+<!-- ═══ PHASE TIMELINE ═══ -->
+<div class="timeline-section">
+  <div class="timeline-label">Recommended rollout · 6–10 weeks</div>
+  <div class="timeline">
+    <a class="phase-step" href="#foundation" title="Account activation, team roles, and initial setup">
+      <div class="phase-num">01</div>
+      <div class="phase-name">Foundation</div>
+      <div class="phase-weeks">Week 1–2</div>
+      <div class="start-here-phase">Start here →</div>
+    </a>
+    <a class="phase-step" href="#connect" title="Connect your data warehouse and configure authentication">
+      <div class="phase-num">02</div>
+      <div class="phase-name">Connect</div>
+      <div class="phase-weeks">Week 2–3</div>
+    </a>
+    <a class="phase-step" href="#build" title="Build your semantic model, security rules, and Liveboards">
+      <div class="phase-num">03</div>
+      <div class="phase-name">Build</div>
+      <div class="phase-weeks">Week 3–7</div>
+    </a>
+    <a class="phase-step" href="#launch" title="Go-live checklist, training, and team communication">
+      <div class="phase-num">04</div>
+      <div class="phase-name">Launch</div>
+      <div class="phase-weeks">Week 7–9</div>
+    </a>
+    <a class="phase-step" href="#adopt" title="Adoption metrics and post-launch growth guidance">
+      <div class="phase-num">05</div>
+      <div class="phase-name">Adopt</div>
+      <div class="phase-weeks">Week 9+</div>
+    </a>
+  </div>
+</div>
+
+
+<!-- ═══ ROLE SELECTOR (P0) ═══ -->
+<div class="role-selector-wrap">
+  <div class="role-selector-label">Who are you? Personalise this guide.</div>
+  <div class="role-btns">
+    <button class="role-btn" data-role="general" onclick="setRole('general',this)" aria-pressed="false" data-tooltip="Show all content — no role filter applied">🌐 General</button>
+    <button class="role-btn" data-role="admin" onclick="setRole('admin',this)" aria-pressed="false" data-tooltip="Focus on setup, connections, authentication, and security config">🔧 Admin / IT</button>
+    <button class="role-btn" data-role="analyst" onclick="setRole('analyst',this)" aria-pressed="false" data-tooltip="Focus on semantic modeling, search quality, and Liveboard creation">📊 Data / Analyst</button>
+    <button class="role-btn" data-role="business" onclick="setRole('business',this)" aria-pressed="false" data-tooltip="Focus on use case definition, adoption strategy, and success metrics">💼 Business / Product</button>
+    <button class="role-btn" data-role="enduser" onclick="setRole('enduser',this)" aria-pressed="false" data-tooltip="Focus on getting started with search and Spotter">👤 End User</button>
+  </div>
+</div>
+
+
+<!-- ═══ START HERE ═══ -->
+<section class="section" id="start-here">
+  <h2 class="section-title">Start Here</h2>
+  <p class="section-sub">Essential first steps before you do anything else</p>
+
+  <div class="callout">
+    <strong>💡 Before you connect data or build anything</strong>
+    Activate your account, create a ThoughtSpot Community account, and get the right people involved. Decisions made in the first two weeks — especially around data modeling and security — are the hardest to undo later.
+  </div>
+
+  <div class="card-grid">
+    <div class="card" data-role="admin">
+      <div class="card-icon">✉️</div>
+      <span class="card-tag tag-admin">Admin</span>
+      <h3>Activate Your Account</h3>
+      <p>Open the administrator activation link from your welcome email and set up your ThoughtSpot Cloud instance. This is your starting point.</p>
+      <a class="card-link" href="https://docs.thoughtspot.com/cloud/latest/ts-cloud-getting-started" target="_blank" rel="noopener noreferrer">Get started →</a>
+    </div>
+    <div class="card" data-role="admin">
+      <div class="card-icon">🛠️</div>
+      <span class="card-tag tag-admin">Admin</span>
+      <h3>Explore the Admin Section</h3>
+      <p>Familiarise yourself with the Admin panel — this is where you manage users, groups, privileges, authentication, and data connections.</p>
+      <a class="card-link" href="https://docs.thoughtspot.com/cloud/latest/administration" target="_blank" rel="noopener noreferrer">View Admin docs →</a>
+    </div>
+    <div class="card" data-role="all">
+      <div class="card-icon">💬</div>
+      <span class="card-tag tag-all">Everyone</span>
+      <h3>Join ThoughtSpot Community</h3>
+      <p>Your Community account is separate from your main ThoughtSpot login. It's where you get answers, share ideas, and connect with other practitioners.</p>
+      <a class="card-link" href="https://community.thoughtspot.com" target="_blank" rel="noopener noreferrer">Join Community →</a>
+    </div>
+    <div class="card" data-role="all">
+      <div class="card-icon">🎓</div>
+      <span class="card-tag tag-all">Everyone</span>
+      <h3>ThoughtSpot University</h3>
+      <p>Free eLearning for every role — Admin, Analyst, and End User. Start with the role-specific learning paths for your team before going live.</p>
+      <a class="card-link" href="https://training.thoughtspot.com/" target="_blank" rel="noopener noreferrer">Start learning →</a>
+    </div>
+    <div class="card" data-role="all">
+      <div class="card-icon">🎯</div>
+      <span class="card-tag tag-all">Everyone</span>
+      <h3>Define Your Use Case</h3>
+      <p>Align with stakeholders on which business question you're answering first. Start with one high-value, well-defined use case — not everything at once.</p>
+      <a class="card-link" href="https://community.thoughtspot.com/s/article/How-to-define-a-use-case-and-success-criteria" target="_blank" rel="noopener noreferrer">Use case template →</a>
+    </div>
+    <div class="card" data-role="all">
+      <div class="card-icon">🤝</div>
+      <span class="card-tag tag-all">Everyone</span>
+      <h3>ThoughtSpot Support</h3>
+      <p>Know how to submit a support case before you need to. Add your team's support contacts so the right people can raise tickets.</p>
+      <a class="card-link" href="https://community.thoughtspot.com/s/article/How-to-Submit-a-ThoughtSpot-Support-Case" target="_blank" rel="noopener noreferrer">Support guide →</a>
+    </div>
+  </div>
+
+  <hr class="divider" style="margin:3rem 0 2.5rem"/>
+
+  <h3 style="font-size:1.1rem;font-weight:800;color:var(--ts-dark);margin-bottom:0.3rem">👥 Who Should Be Involved</h3>
+  <p style="font-size:0.88rem;color:var(--ts-gray);margin-bottom:1.2rem">Get the right people engaged from day one — data modeling, security, and adoption all require different skills.</p>
+
+  <div class="roles-grid">
+    <div class="role-card">
+      <div class="role-title"><span>🔧</span> <span style="color:var(--ts-blue)">Admin / IT</span></div>
+      <ul>
+        <li>Account activation &amp; admin setup</li>
+        <li>Data connection configuration</li>
+        <li>Authentication &amp; SSO setup</li>
+        <li>User &amp; group provisioning</li>
+        <li>Row-level security configuration</li>
+      </ul>
+    </div>
+    <div class="role-card">
+      <div class="role-title"><span>📊</span> <span style="color:var(--ts-blue-dark)">Data / Analyst</span></div>
+      <ul>
+        <li>Semantic model design &amp; build</li>
+        <li>Column naming &amp; synonym definitions</li>
+        <li>Default aggregation configuration</li>
+        <li>Liveboard &amp; Answer creation</li>
+        <li>Data quality validation</li>
+      </ul>
+    </div>
+    <div class="role-card">
+      <div class="role-title"><span>💼</span> <span style="color:var(--ts-blue-dark)">Business / Product</span></div>
+      <ul>
+        <li>Define use cases &amp; success metrics</li>
+        <li>Prioritise MVP content with stakeholders</li>
+        <li>Champion adoption internally</li>
+        <li>Executive communication &amp; buy-in</li>
+        <li>Feedback collection post-launch</li>
+      </ul>
+    </div>
+    <div class="role-card">
+      <div class="role-title"><span>👤</span> <span style="color:var(--ts-blurple)">End Users</span></div>
+      <ul>
+        <li>Participate in UAT &amp; training</li>
+        <li>Validate Liveboards match real needs</li>
+        <li>Surface feedback during pilot</li>
+        <li>Become Spotter early adopters</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+
+
+
+<!-- ═══ FOUNDATION ═══ -->
+<div style="background:var(--ts-light);border-bottom:1px solid var(--ts-border)">
+<section class="section" id="foundation">
+  <h2 class="section-title">Phase 1 — Foundation Setup</h2>
+  <p class="section-sub">Weeks 1–2 · Account, roles, and privileges</p>
+  <div class="effort-meta" aria-label="Effort estimate">
+    <span>🕐 4–6 hours total effort</span>
+    <span>🔧 Admin: ~4h</span>
+    <span>📊 Data/Analyst: ~1h</span>
+    <span>💼 Business: ~1h</span>
+  </div>
+
+  <div class="step-list">
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-content">
+        <h4>Activate your ThoughtSpot Cloud account</h4>
+        <p>Use the administrator activation link received via email. Set a strong password, confirm your instance URL, and log in to the Admin portal.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-content">
+        <h4>Assign roles &amp; privileges to team members</h4>
+        <p>ThoughtSpot uses role-based access control (RBAC). Assign the correct roles: Admin, Analyst, and Viewer. Only give data-upload privileges to those who need them.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-content">
+        <h4>Create groups aligned to your security model</h4>
+        <p>Groups are the foundation of both permissions and Row-Level Security. Design your group structure before you invite users — it's much harder to restructure later.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">4</div>
+      <div class="step-content">
+        <h4>Confirm data is accessible in your CDW</h4>
+        <p>Before connecting ThoughtSpot, verify your data exists in your Cloud Data Warehouse (Snowflake, BigQuery, Redshift, etc.) and a service account with appropriate read access is ready.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">5</div>
+      <div class="step-content">
+        <h4>Prioritise your first use case</h4>
+        <p>Agree with stakeholders on one high-value business question to answer first. A narrow, well-defined MVP is better than broad coverage — you can expand after validation.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="callout warning" style="margin-top:2rem">
+    <strong>⚠️ Common Mistake</strong>
+    Don't try to model all your data at once. Start with the tables and metrics that serve your first use case. A focused semantic model delivers value faster and is easier to validate.
+  </div>
+
+</section>
+</div>
+
+
+<!-- ═══ CONNECT ═══ -->
+<section class="section" id="connect">
+  <h2 class="section-title">Phase 2 — Data Connection &amp; Authentication</h2>
+  <p class="section-sub">Weeks 2–3 · Connect your CDW and configure user access</p>
+  <div class="effort-meta" aria-label="Effort estimate">
+    <span>🕐 4–8 hours total effort</span>
+    <span>🔧 Admin: ~6h</span>
+    <span>📊 Data: ~2h</span>
+  </div>
+
+  <!-- CDW TABS (P1) -->
+  <div class="cdw-tabs-wrap" data-role="admin">
+    <div class="cdw-header">
+      <h3>🔌 CDW-Specific Connection Guide</h3>
+      <p style="font-size:0.85rem;color:var(--ts-gray);margin-top:0.3rem">Select your data warehouse for step-by-step setup instructions.</p>
+    </div>
+    <div class="cdw-tab-nav" role="tablist" aria-label="CDW platforms">
+      <button class="cdw-tab-btn active" role="tab" aria-selected="true" onclick="switchCDW('snowflake',this)" data-tooltip="View Snowflake-specific connection setup steps">❄️ Snowflake</button>
+      <button class="cdw-tab-btn" role="tab" aria-selected="false" onclick="switchCDW('bigquery',this)" data-tooltip="View BigQuery-specific connection setup steps">📊 BigQuery</button>
+      <button class="cdw-tab-btn" role="tab" aria-selected="false" onclick="switchCDW('redshift',this)" data-tooltip="View Redshift-specific connection setup steps">🔴 Redshift</button>
+      <button class="cdw-tab-btn" role="tab" aria-selected="false" onclick="switchCDW('databricks',this)" data-tooltip="View Databricks-specific connection setup steps">🧱 Databricks</button>
+    </div>
+
+    <div id="cdw-snowflake" class="cdw-tab-content active" role="tabpanel">
+      <div class="cdw-steps">
+        <div class="cdw-step"><div class="cdw-step-num">1</div><div class="cdw-step-body"><p>Create a dedicated service role: <code>CREATE ROLE thoughtspot_role;</code></p></div></div>
+        <div class="cdw-step"><div class="cdw-step-num">2</div><div class="cdw-step-body"><p>Grant usage on warehouse, database, schema, and tables to the role.<pre>GRANT USAGE ON WAREHOUSE my_wh TO ROLE thoughtspot_role;
+GRANT USAGE ON DATABASE my_db TO ROLE thoughtspot_role;
+GRANT USAGE ON ALL SCHEMAS IN DATABASE my_db TO ROLE thoughtspot_role;
+GRANT SELECT ON ALL TABLES IN SCHEMA my_db.my_schema TO ROLE thoughtspot_role;</pre></p></div></div>
+        <div class="cdw-step"><div class="cdw-step-num">3</div><div class="cdw-step-body"><p>Create a service user and assign the role: <code>CREATE USER thoughtspot_svc DEFAULT_ROLE = thoughtspot_role;</code></p></div></div>
+        <div class="cdw-step"><div class="cdw-step-num">4</div><div class="cdw-step-body"><p>In ThoughtSpot: use username/password or key-pair auth. Set <code>DEFAULT_WAREHOUSE</code> on the service user to avoid connection errors.</p></div></div>
+        <div class="cdw-step"><div class="cdw-step-num">5</div><div class="cdw-step-body"><p>Allowlist ThoughtSpot's IP ranges in your Snowflake network policy. IP list →  <a href="https://docs.thoughtspot.com/cloud/latest/connections-snowflake" target="_blank" rel="noopener noreferrer" style="color:var(--ts-blue)">Snowflake connection docs</a></p></div></div>
+      </div>
+    </div>
+
+    <div id="cdw-bigquery" class="cdw-tab-content" role="tabpanel">
+      <div class="cdw-steps">
+        <div class="cdw-step"><div class="cdw-step-num">1</div><div class="cdw-step-body"><p>Create a dedicated GCP Service Account in IAM with a descriptive name (e.g. <code>thoughtspot-svc@your-project.iam.gserviceaccount.com</code>).</p></div></div>
+        <div class="cdw-step"><div class="cdw-step-num">2</div><div class="cdw-step-body"><p>Grant the following roles to the service account: <code>BigQuery Data Viewer</code> + <code>BigQuery Job User</code>.</p></div></div>
+        <div class="cdw-step"><div class="cdw-step-num">3</div><div class="cdw-step-body"><p>Download the JSON key file from IAM → Service Accounts → Keys → Add Key → JSON.</p></div></div>
+        <div class="cdw-step"><div class="cdw-step-num">4</div><div class="cdw-step-body"><p>In ThoughtSpot: upload the JSON key file in the connection form. BigQuery connections use project-level scoping — ensure the service account has access to the correct project.</p></div></div>
+        <div class="cdw-step"><div class="cdw-step-num">5</div><div class="cdw-step-body"><p><a href="https://docs.thoughtspot.com/cloud/latest/connections-gbq" target="_blank" rel="noopener noreferrer" style="color:var(--ts-blue)">BigQuery connection docs →</a></p></div></div>
+      </div>
+    </div>
+
+    <div id="cdw-redshift" class="cdw-tab-content" role="tabpanel">
+      <div class="cdw-steps">
+        <div class="cdw-step"><div class="cdw-step-num">1</div><div class="cdw-step-body"><p>Create a dedicated DB user with SELECT on target schemas:<pre>CREATE USER thoughtspot_svc WITH PASSWORD 'strong_password';
+GRANT SELECT ON ALL TABLES IN SCHEMA public TO thoughtspot_svc;</pre></p></div></div>
+        <div class="cdw-step"><div class="cdw-step-num">2</div><div class="cdw-step-body"><p>Ensure ThoughtSpot's IP ranges are added to your Redshift security group inbound rules (port 5439).</p></div></div>
+        <div class="cdw-step"><div class="cdw-step-num">3</div><div class="cdw-step-body"><p>Use Redshift's native auth (username/password). IAM auth is not currently supported by ThoughtSpot.</p></div></div>
+        <div class="cdw-step"><div class="cdw-step-num">4</div><div class="cdw-step-body"><p>For Redshift Serverless: use the serverless endpoint URL format (e.g. <code>workgroup.account.region.redshift-serverless.amazonaws.com</code>).</p></div></div>
+        <div class="cdw-step"><div class="cdw-step-num">5</div><div class="cdw-step-body"><p><a href="https://docs.thoughtspot.com/cloud/latest/connections-redshift" target="_blank" rel="noopener noreferrer" style="color:var(--ts-blue)">Redshift connection docs →</a></p></div></div>
+      </div>
+    </div>
+
+    <div id="cdw-databricks" class="cdw-tab-content" role="tabpanel">
+      <div class="cdw-steps">
+        <div class="cdw-step"><div class="cdw-step-num">1</div><div class="cdw-step-body"><p>Generate a personal access token in Databricks (User Settings → Developer → Access Tokens) or use service principal OAuth for production.</p></div></div>
+        <div class="cdw-step"><div class="cdw-step-num">2</div><div class="cdw-step-body"><p>Use the <strong>SQL Warehouse HTTP path</strong> (not the all-purpose cluster path). Find it in SQL Warehouses → your warehouse → Connection Details.</p></div></div>
+        <div class="cdw-step"><div class="cdw-step-num">3</div><div class="cdw-step-body"><p>Ensure the token/principal has <code>CAN USE</code> permission on the target SQL Warehouse.</p></div></div>
+        <div class="cdw-step"><div class="cdw-step-num">4</div><div class="cdw-step-body"><p>Grant <code>SELECT</code> on the target catalog/schema to the service principal or token user.</p></div></div>
+        <div class="cdw-step"><div class="cdw-step-num">5</div><div class="cdw-step-body"><p><a href="https://docs.thoughtspot.com/cloud/latest/connections-databricks" target="_blank" rel="noopener noreferrer" style="color:var(--ts-blue)">Databricks connection docs →</a></p></div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card-grid" style="margin-bottom:2rem">
+    <div class="card" data-role="admin">
+      <div class="card-icon">🔐</div>
+      <span class="card-tag tag-admin">Admin</span>
+      <h3>Configure Authentication</h3>
+      <p>Choose your auth method: SAML SSO (recommended for enterprise), Local Authentication, or MFA. SAML configuration requires your IdP metadata and ThoughtSpot's SP metadata.</p>
+      <a class="card-link" href="https://docs.thoughtspot.com/cloud/latest/authentication" target="_blank" rel="noopener noreferrer">Auth guide →</a>
+    </div>
+    <div class="card" data-role="admin">
+      <div class="card-icon">👥</div>
+      <span class="card-tag tag-admin">Admin</span>
+      <h3>User &amp; Group Management</h3>
+      <p>Create users manually, sync via IdP, or automate via REST API. Group membership drives both content sharing permissions and row-level security rules.</p>
+      <a class="card-link" href="https://docs.thoughtspot.com/cloud/latest/groups-privileges" target="_blank" rel="noopener noreferrer">Groups &amp; Privileges →</a>
+    </div>
+  </div>
+
+  <div class="callout">
+    <strong>💡 SAML SSO Tip</strong>
+    If you're using Okta, Azure AD, or Google Workspace — configure SAML SSO before inviting end users. It makes the login experience seamless and enables automated group/role assignment via IdP attributes.
+  </div>
+
+</section>
+
+
+<!-- ═══ TROUBLESHOOTING (P1) ═══ -->
+<div class="trouble-section" id="troubleshooting">
+<section class="section">
+  <h2 class="section-title">⚡ Common Issues &amp; Fixes</h2>
+  <p class="section-sub">Something not working? Find your issue below — each entry includes an actionable fix.</p>
+
+  <div class="accordion" id="troubleAccordion">
+    <div class="accordion-group-label">🔌 Data Connection Issues</div>
+
+    <div class="accordion-item">
+      <button class="accordion-header" aria-expanded="false" onclick="toggleAccordion(this)">
+        "Connection test failed" <span class="acc-arrow">▼</span>
+      </button>
+      <div class="accordion-body">
+        <ul>
+          <li>Check that your CDW service account has <strong>SELECT privileges</strong> on the target schema.</li>
+          <li>Verify ThoughtSpot's IP ranges are <strong>allowlisted</strong> in your CDW firewall — see the CDW guide above for your platform.</li>
+          <li>For Snowflake: confirm the warehouse is <strong>not suspended</strong> and the role is active. Run <code>SELECT CURRENT_ROLE();</code> to verify.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="accordion-item">
+      <button class="accordion-header" aria-expanded="false" onclick="toggleAccordion(this)">
+        "I can see the connection but no tables" <span class="acc-arrow">▼</span>
+      </button>
+      <div class="accordion-body">
+        <ul>
+          <li>The service account may lack privileges on specific schemas or tables.</li>
+          <li>For Snowflake, run: <code>GRANT SELECT ON ALL TABLES IN SCHEMA &lt;schema&gt; TO ROLE &lt;role&gt;;</code></li>
+          <li>In BigQuery: ensure the service account has <code>BigQuery Data Viewer</code> at the dataset level, not just project level.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="accordion-item">
+      <button class="accordion-header" aria-expanded="false" onclick="toggleAccordion(this)">
+        "OAuth connection keeps failing" <span class="acc-arrow">▼</span>
+      </button>
+      <div class="accordion-body">
+        <ul>
+          <li>Ensure the redirect URI in your IdP matches <strong>exactly</strong> what ThoughtSpot expects (case-sensitive, no trailing slashes).</li>
+          <li>Check token expiry settings — short-lived tokens cause silent re-auth failures. Increase token lifetime or enable refresh tokens.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="accordion-group-label">🔍 Semantic Model / Search Issues</div>
+
+    <div class="accordion-item">
+      <button class="accordion-header" aria-expanded="false" onclick="toggleAccordion(this)">
+        "Search returns no results for a term I expect" <span class="acc-arrow">▼</span>
+      </button>
+      <div class="accordion-body">
+        <ul>
+          <li>Check if the column exists in the <strong>Model</strong> (not just the raw table) — only columns added to the Model are searchable.</li>
+          <li>Add the term as a <strong>synonym</strong> on the relevant column in the Model editor.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="accordion-item">
+      <button class="accordion-header" aria-expanded="false" onclick="toggleAccordion(this)">
+        "Search gives the wrong number / aggregation" <span class="acc-arrow">▼</span>
+      </button>
+      <div class="accordion-body">
+        <ul>
+          <li>Check the column's <strong>default aggregation</strong> in the Model editor — it may be set to AVG or COUNT instead of SUM.</li>
+          <li>Verify no row-level filters are applied at the Model level that would change the expected output.</li>
+          <li>Test the same query as an Admin (no RLS) vs a test user — if the numbers differ, RLS is filtering data you didn't expect.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="accordion-group-label">🔑 Authentication Issues</div>
+
+    <div class="accordion-item">
+      <button class="accordion-header" aria-expanded="false" onclick="toggleAccordion(this)">
+        "Users are being redirected to a login loop" <span class="acc-arrow">▼</span>
+      </button>
+      <div class="accordion-body">
+        <ul>
+          <li>SAML: check that the <strong>SP Entity ID</strong> in your IdP matches ThoughtSpot's metadata exactly — this comparison is case-sensitive.</li>
+          <li>Verify the <strong>ACS URL</strong> in your IdP uses the correct ThoughtSpot instance URL (check for trailing slashes or HTTP vs HTTPS).</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="accordion-item">
+      <button class="accordion-header" aria-expanded="false" onclick="toggleAccordion(this)">
+        "New SSO users land on ThoughtSpot but see no content" <span class="acc-arrow">▼</span>
+      </button>
+      <div class="accordion-body">
+        <ul>
+          <li>JIT provisioning may not be auto-assigning the correct group. Manually assign the user to the correct group post-login.</li>
+          <li>Then investigate your IdP's <strong>attribute mapping</strong> to ensure the group claim is being sent correctly in the SAML assertion.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <p style="font-size:0.85rem;color:var(--ts-gray)">Still stuck? <a href="https://community.thoughtspot.com/s/contactsupport" target="_blank" rel="noopener noreferrer" style="color:var(--ts-blue);font-weight:600">Submit a Support Case →</a></p>
+</section>
+</div>
+
+
+<!-- ═══ BUILD ═══ -->
+<div style="background:var(--ts-light);border-top:1px solid var(--ts-border);border-bottom:1px solid var(--ts-border)">
+<section class="section" id="build">
+  <h2 class="section-title">Phase 3 — Build Your Semantic Model, Security &amp; Insights</h2>
+  <p class="section-sub">Weeks 3–7 · The most important phase — get the foundation right before creating Liveboards</p>
+  <div class="effort-meta" aria-label="Effort estimate">
+    <span>🕐 20–40 hours total effort</span>
+    <span>📊 Data/Analyst: ~30h</span>
+    <span>🔧 Admin: ~4h</span>
+    <span>💼 Business: ~6h</span>
+  </div>
+
+  <div class="callout critical">
+    <strong>🔴 Critical: Build a Great Semantic Model First</strong>
+    The semantic model is what powers ThoughtSpot's AI-driven search and Spotter. A poorly built model — with raw database column names, missing synonyms, and wrong aggregations — is the #1 cause of a bad end-user experience. Users may blame the product when the real issue is the model. Invest time here before building any Liveboards.
+  </div>
+
+  <h3 style="font-size:1.1rem;font-weight:800;color:var(--ts-dark);margin:2rem 0 1rem">🧱 Semantic Model Best Practices</h3>
+  <div class="step-list">
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-content">
+        <h4>Use business-friendly column names</h4>
+        <p>Rename database columns to business-friendly terms. "cust_id" → "Customer ID". "rev_ytd_usd" → "Revenue YTD". Your users will search using natural language — make sure the column names match how they speak.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-content">
+        <h4>Define synonyms for common business terms</h4>
+        <p>Add synonyms so search understands that "sales" = "revenue", "client" = "customer", "headcount" = "employees". This dramatically improves search hit rates and Spotter accuracy.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-content">
+        <h4>Configure default aggregations correctly</h4>
+        <p>Every measure needs the right default aggregation (SUM, COUNT, AVG, etc.). Wrong defaults mean users get unexpected results without realising it. Validate each measure against known data.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">4</div>
+      <div class="step-content">
+        <h4>Join tables thoughtfully — star schema is best</h4>
+        <p>Keep joins simple. A clean star schema (one fact table, multiple dimension tables) outperforms complex multi-hop joins for search performance and accuracy.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">5</div>
+      <div class="step-content">
+        <h4>Test end-to-end with real business questions</h4>
+        <p>Before inviting users, ask 10–15 realistic business questions in ThoughtSpot Search. If the answers look wrong or Search doesn't understand the question, fix the model — not the query.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="callout warning" style="margin-top:1.5rem">
+    <strong>⚠️ Model Anti-Patterns to Avoid</strong>
+    Raw database column names · Missing synonyms · Unexpected default aggregations · Too many tables joined (keep it focused) · Building Liveboards before validating the model end-to-end
+  </div>
+
+  <!-- AI CONTEXT -->
+  <div class="callout" style="margin-top:1.5rem">
+    <strong>💬 AI Context &amp; Model Instructions</strong>
+    Before testing with Spotter, consider adding <strong>AI Context</strong> to your model — a plain-language description of what the data represents, key metrics, and how they relate. This helps Spotter interpret ambiguous questions correctly and return more relevant answers. You can add AI Context in the Model editor under <em>Settings → AI Instructions</em>. Think of it as briefing your AI analyst on your business before their first day.
+  </div>
+
+  <!-- SAMPLE DATA CTA (P1) -->
+  <div class="sample-cta">
+    <div class="sample-cta-label">🧪 Try It Now with Spotter</div>
+    <h4>Pressure-test your model with Spotter before go-live</h4>
+    <p>Once your model is ready, open Spotter and ask it questions using <em>your own business vocabulary</em> — not generic terms. The goal isn't just to get an answer; it's to verify that Spotter understands your data and returns numbers you'd trust. Use question patterns like these as a template, adapted to your model:</p>
+    <ol>
+      <li>Which regions are underperforming against their sales targets this quarter, and what's driving the gap?</li>
+      <li>Show me the top 10 products by revenue over the last 12 months — and flag any that had a month-over-month decline in the last 90 days</li>
+      <li>How has average order value changed across customer segments since we launched the new pricing in January?</li>
+      <li>Which sales reps closed the most new logo deals this year, and how does their deal size compare to the team average?</li>
+      <li>What percentage of last quarter's revenue came from customers acquired in the past 6 months versus existing accounts?</li>
+    </ol>
+  </div>
+
+  <h3 style="font-size:1.1rem;font-weight:800;color:var(--ts-dark);margin:2.5rem 0 1rem">🔒 Data Security — RLS &amp; RBAC</h3>
+  <div class="card-grid" style="margin-bottom:1.5rem">
+    <div class="card" data-role="admin">
+      <div class="card-icon">🔑</div>
+      <span class="card-tag tag-critical">Critical</span>
+      <h3>Row-Level Security (RLS)</h3>
+      <p>RLS restricts which rows of data each user or group can see — if appropriate or required for your use case. It works via a rule referencing ThoughtSpot group membership or username. Where needed, define and test RLS for every persona before go-live.</p>
+      <a class="card-link" href="https://docs.thoughtspot.com/cloud/latest/security-rls-implement" target="_blank" rel="noopener noreferrer">RLS guide →</a>
+    </div>
+    <div class="card" data-role="analyst">
+      <div class="card-icon">🏷️</div>
+      <span class="card-tag tag-data">Data</span>
+      <h3>Column Security Rules (CSR)</h3>
+      <p>Restrict visibility of sensitive columns (PII, cost, margin) to specific groups — if appropriate or required for your use case. Apply CSR at the table level and verify it propagates correctly to Models and Liveboards.</p>
+      <a class="card-link" href="https://docs.thoughtspot.com/cloud/latest/security-data-object#cls" target="_blank" rel="noopener noreferrer">CSR docs →</a>
+    </div>
+    <div class="card" data-role="admin">
+      <div class="card-icon">🛡️</div>
+      <span class="card-tag tag-admin">Admin</span>
+      <h3>Role-Based Access Control</h3>
+      <p>Use RBAC to control who can edit, view, or download content. Assign the least privilege necessary. Analyst role for builders, Viewer role for consumers.</p>
+      <a class="card-link" href="https://docs.thoughtspot.com/cloud/latest/groups-privileges" target="_blank" rel="noopener noreferrer">RBAC guide →</a>
+    </div>
+  </div>
+
+  <div class="callout">
+    <strong>💡 Test security before inviting users — not after</strong>
+    Log in as a test user in each persona and verify they see exactly the data they should — no more, no less. RLS misconfigurations are invisible to admins but obvious to users.
+  </div>
+
+  <h3 style="font-size:1.1rem;font-weight:800;color:var(--ts-dark);margin:2.5rem 0 1rem">📊 Create Liveboards &amp; Answers</h3>
+  <div class="card-grid">
+    <div class="card" data-role="analyst">
+      <div class="card-icon">📋</div>
+      <span class="card-tag tag-analyst">Analyst</span>
+      <h3>Start with 1–2 Liveboards</h3>
+      <p>Build your MVP around the one use case you defined in Phase 1. Limit each Liveboard to 5–8 visualisations. Focused Liveboards load faster and get higher adoption.</p>
+      <a class="card-link" href="https://docs.thoughtspot.com/cloud/latest/liveboards" target="_blank" rel="noopener noreferrer">Liveboard guide →</a>
+    </div>
+    <div class="card" data-role="analyst">
+      <div class="card-icon">🔍</div>
+      <span class="card-tag tag-analyst">Analyst</span>
+      <h3>Validate Search Works Well</h3>
+      <p>Run 20+ representative search queries against your Model. If search doesn't return expected results, refine column names, synonyms, or aggregations — don't move on until this works.</p>
+      <a class="card-link" href="https://docs.thoughtspot.com/cloud/latest/search" target="_blank" rel="noopener noreferrer">Search docs →</a>
+    </div>
+    <div class="card" data-role="analyst">
+      <div class="card-icon">📐</div>
+      <span class="card-tag tag-analyst">Analyst</span>
+      <h3>Use Formulas Thoughtfully</h3>
+      <p>ThoughtSpot formulas let you create custom metrics in the semantic layer. Define key business metrics (e.g. "Gross Margin %") once in the model — don't recreate them in every Liveboard.</p>
+      <a class="card-link" href="https://docs.thoughtspot.com/cloud/latest/formulas" target="_blank" rel="noopener noreferrer">Formula guide →</a>
+    </div>
+  </div>
+
+  <!-- TML CARD (P2) -->
+  <div class="tml-card">
+    <div class="tml-card-label">📄 When you're ready — manage content as code</div>
+    <h4>ThoughtSpot Modeling Language (TML)</h4>
+    <p>Once your Model and Liveboards are validated, you can export them as YAML files using TML. You don't need TML on day one — but if you have multiple environments or a CI/CD pipeline, explore it before your second use case.</p>
+    <ul>
+      <li><strong>Version control:</strong> commit your model to Git alongside your dbt or SQL code</li>
+      <li><strong>Environment promotion:</strong> move content from dev → staging → prod without manual rebuilding</li>
+      <li><strong>Bulk editing:</strong> modify multiple objects at once using find-and-replace in YAML</li>
+    </ul>
+    <a href="https://docs.thoughtspot.com/cloud/latest/tml" target="_blank" rel="noopener noreferrer" class="card-link">TML Documentation →</a>
+  </div>
+
+</section>
+</div>
+
+
+<!-- ═══ LAUNCH ═══ -->
+<section class="section" id="launch">
+  <h2 class="section-title">Phase 4 — Launch &amp; User Adoption</h2>
+  <p class="section-sub">Weeks 7–9 · Training, go-live, and making it stick</p>
+  <div class="effort-meta" aria-label="Effort estimate">
+    <span>🕐 8–12 hours total effort</span>
+    <span>👥 Everyone: ~2–3h each</span>
+  </div>
+
+  <div class="callout success">
+    <strong>✅ Go-live is the start line, not the finish line</strong>
+    The most successful ThoughtSpot deployments treat launch as a beginning, not an end. Plan your training, feedback loop, and adoption metrics before you flip the switch.
+  </div>
+
+  <h3 style="font-size:1.1rem;font-weight:800;color:var(--ts-dark);margin:2rem 0 1rem">✅ Go-Live Readiness Checklist</h3>
+
+  <div class="checklist-group">
+    <h3>Foundation</h3>
+    <div class="checklist-items">
+      <label class="check-item"><input type="checkbox"> <label>ThoughtSpot instance provisioned and accessible</label></label>
+      <label class="check-item"><input type="checkbox"> <label>Data connection(s) to CDW established and tested</label></label>
+      <label class="check-item"><input type="checkbox"> <label>Semantic model built and validated</label></label>
+      <label class="check-item"><input type="checkbox"> <label>Column names are business-friendly — no raw DB identifiers</label></label>
+      <label class="check-item"><input type="checkbox"> <label>Synonyms defined and tested for key terms</label></label>
+    </div>
+  </div>
+
+  <div class="checklist-group">
+    <h3>Security</h3>
+    <div class="checklist-items">
+      <label class="check-item"><input type="checkbox"> <label>Authentication configured (SAML / Local / MFA)</label></label>
+      <label class="check-item"><input type="checkbox"> <label>User groups created and aligned to personas</label></label>
+      <label class="check-item"><input type="checkbox"> <label>RLS rules defined and tested for every persona</label></label>
+      <label class="check-item"><input type="checkbox"> <label>CSR applied to sensitive columns where required (PII, financials)</label></label>
+      <label class="check-item"><input type="checkbox"> <label>Tested as each user persona — correct data visible, restricted data hidden</label></label>
+    </div>
+  </div>
+
+  <div class="checklist-group">
+    <h3>Content</h3>
+    <div class="checklist-items">
+      <label class="check-item"><input type="checkbox"> <label>MVP Liveboards built and reviewed by business stakeholders</label></label>
+      <label class="check-item"><input type="checkbox"> <label>Search validated with 20+ realistic business questions</label></label>
+      <label class="check-item"><input type="checkbox"> <label>Spotter tested against the semantic model (if using)</label></label>
+      <label class="check-item"><input type="checkbox"> <label>Content shared with the correct groups / permissions</label></label>
+    </div>
+  </div>
+
+  <div class="checklist-group">
+    <h3>Adoption</h3>
+    <div class="checklist-items">
+      <label class="check-item"><input type="checkbox"> <label>Training materials prepared (role-specific)</label></label>
+      <label class="check-item"><input type="checkbox"> <label>Pilot user group identified and trained</label></label>
+      <label class="check-item"><input type="checkbox"> <label>Feedback mechanism in place (Slack channel, form, etc.)</label></label>
+      <label class="check-item"><input type="checkbox"> <label>Executive sponsor briefed and aligned on success metrics</label></label>
+      <label class="check-item"><input type="checkbox"> <label>Support ownership defined — who handles user questions post-launch?</label></label>
+      <label class="check-item"><input type="checkbox"> <label>Adoption metrics instrumented (active users, search queries, Liveboard views)</label></label>
+    </div>
+  </div>
+
+  <!-- ANNOUNCEMENT TEMPLATE (P2) -->
+  <div class="announce-wrap">
+    <h3 style="font-size:1.1rem;font-weight:800;color:var(--ts-dark);margin-bottom:1rem">📢 Announce to Your Team</h3>
+    <button class="announce-toggle-btn" id="announceToggle" onclick="toggleAnnounce()" aria-expanded="false" data-tooltip="Reveal a ready-to-send email template for your team launch">
+      Show email template <span class="arrow">▼</span>
+    </button>
+    <div class="announce-card" id="announceCard" aria-hidden="true">
+      <div class="announce-subject">Subject line</div>
+      <div style="font-size:0.85rem;color:var(--ts-dark);font-weight:600;margin-bottom:0.2rem">We're launching ThoughtSpot — here's what you need to know</div>
+      <div class="announce-template" id="announceText">Hi team,
+
+We're excited to announce that <span class="ph">[Company Name]</span> is now live on ThoughtSpot, our new self-service analytics platform. Starting <span class="ph">[date]</span>, you'll be able to explore our <span class="ph">[data domain]</span> data and answer your own business questions — no SQL or spreadsheet required.
+
+What you can do from day one:
+• Browse our <span class="ph">[Liveboard name]</span> dashboard for an overview of <span class="ph">[key metrics]</span>
+• Search for specific numbers using plain English (e.g. "sales by region last quarter")
+• Ask Spotter, our AI analyst, questions in natural language
+
+Getting started:
+1. Log in at <span class="ph">[your ThoughtSpot URL]</span>
+2. Use your <span class="ph">[SSO / work email]</span> to sign in
+3. Start with the <span class="ph">[Liveboard name]</span> Liveboard
+
+Questions? Reply to this email or post in <span class="ph">[#analytics Slack channel]</span>.
+
+<span class="ph">[Your name]</span></div>
+      <button class="copy-btn" id="copyBtn" onclick="copyAnnouncement()" data-tooltip="Copy this email template to your clipboard">📋 Copy to clipboard</button>
+    </div>
+  </div>
+
+  <h3 style="font-size:1.1rem;font-weight:800;color:var(--ts-dark);margin:2.5rem 0 0.5rem">📈 What Good Adoption Looks Like</h3>
+  <p style="font-size:0.88rem;color:var(--ts-gray);margin-bottom:1rem">Track these milestones at 30, 60, and 90 days post-launch</p>
+
+  <div class="metrics-grid">
+    <div class="metric-card">
+      <div class="metric-period">📅 30 Days</div>
+      <ul>
+        <li>Pilot users logging in weekly</li>
+        <li>Liveboards viewed regularly</li>
+        <li>First Search/Spotter queries running</li>
+        <li>Initial feedback collected</li>
+      </ul>
+    </div>
+    <div class="metric-card">
+      <div class="metric-period">📅 60 Days</div>
+      <ul>
+        <li>Broader team rollout complete</li>
+        <li>2nd use case scoped</li>
+        <li>Model refined based on feedback</li>
+        <li>Failed searches reviewed &amp; fixed</li>
+      </ul>
+    </div>
+    <div class="metric-card">
+      <div class="metric-period">📅 90 Days</div>
+      <ul>
+        <li>Active weekly users growing</li>
+        <li>Self-service searches increasing</li>
+        <li>Executive dashboard in use</li>
+        <li>Expansion plan agreed</li>
+      </ul>
+    </div>
+    <div class="metric-card">
+      <div class="metric-period">📊 Always Monitor</div>
+      <ul>
+        <li>Weekly Active Users (WAU)</li>
+        <li>Search query volume</li>
+        <li>Failed / zero-result searches</li>
+        <li>Liveboard load times</li>
+      </ul>
+    </div>
+  </div>
+
+</section>
+
+
+<!-- ═══ SPOTTER (P0 — EXPANDED) ═══ -->
+<div style="padding:0 2rem;max-width:1100px;margin:0 auto;" id="spotter">
+  <div class="spotter-section">
+    <div style="font-size:0.75rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--ts-cyan);margin-bottom:0.7rem">⭐ AI-Powered Analytics</div>
+    <h2>Meet Spotter — Your AI Analyst</h2>
+    <p>Spotter lets your users ask questions in plain English and get instant visual answers. No SQL, no formulas — just natural language. The better your semantic model, the better Spotter works.</p>
+
+    <div class="spotter-cards">
+      <div class="spotter-card">
+        <h4>🤖 What Spotter Does</h4>
+        <p>Understands natural language questions and generates charts, tables, and narrative explanations from your data.</p>
+      </div>
+      <div class="spotter-card">
+        <h4>🧱 What It Needs</h4>
+        <p>A well-built semantic model with business-friendly names, synonyms, and correct aggregations. Spotter is only as good as your model.</p>
+      </div>
+      <div class="spotter-card">
+        <h4>⚙️ Admin Setup</h4>
+        <p>Enable Spotter in the Admin panel, configure which data sources it can access, and set up user permissions per group.</p>
+      </div>
+      <div class="spotter-card">
+        <h4>🎓 Training Users</h4>
+        <p>Run a 30-minute "first questions" session with end users. Show them 5 example queries — adoption spikes when users have a concrete starting point.</p>
+      </div>
+    </div>
+
+    <!-- 3a: EXAMPLE PROMPTS -->
+    <div class="spotter-sub-label">✅ Example Prompts</div>
+    <div class="spotter-sub-h3">The types of questions you can ask Spotter</div>
+
+    <div class="accordion spotter-accordion" id="promptsAccordion">
+      <div class="accordion-item">
+        <button class="accordion-header" aria-expanded="false" onclick="toggleAccordion(this)">
+          <span>📊 Data Questions <span style="font-weight:400;font-size:0.8rem;color:rgba(255,255,255,0.45);margin-left:0.6rem">Quantitative lookups against your model</span></span>
+          <span class="acc-arrow">▼</span>
+        </button>
+        <div class="accordion-body">
+          <ul>
+            <li>💬 "What were total sales by region last quarter?"</li>
+            <li>💬 "Top 10 customers by gross margin % in EMEA this year"</li>
+            <li>💬 "Average order value by sales rep where deals closed after Jan 2024"</li>
+          </ul>
+        </div>
+      </div>
+      <div class="accordion-item">
+        <button class="accordion-header" aria-expanded="false" onclick="toggleAccordion(this)">
+          <span>🗂️ Metadata Questions <span style="font-weight:400;font-size:0.8rem;color:rgba(255,255,255,0.45);margin-left:0.6rem">Discover what data exists and what can be measured</span></span>
+          <span class="acc-arrow">▼</span>
+        </button>
+        <div class="accordion-body">
+          <ul>
+            <li>💬 "What metrics do we track for customer retention?"</li>
+            <li>💬 "What dimensions can I break revenue down by?"</li>
+            <li>💬 "Which data sources are available in this model?"</li>
+          </ul>
+        </div>
+      </div>
+      <div class="accordion-item">
+        <button class="accordion-header" aria-expanded="false" onclick="toggleAccordion(this)">
+          <span>🔍 How &amp; Why Questions <span style="font-weight:400;font-size:0.8rem;color:rgba(255,255,255,0.45);margin-left:0.6rem">Understand drivers and root causes</span></span>
+          <span class="acc-arrow">▼</span>
+        </button>
+        <div class="accordion-body">
+          <ul>
+            <li>💬 "Why did revenue drop in March?"</li>
+            <li>💬 "How did EMEA perform vs target last half?"</li>
+            <li>💬 "Which product categories had declining revenue month over month?"</li>
+          </ul>
+        </div>
+      </div>
+      <div class="accordion-item">
+        <button class="accordion-header" aria-expanded="false" onclick="toggleAccordion(this)">
+          <span>📈 Predict &amp; Forecast Questions <span style="font-weight:400;font-size:0.8rem;color:rgba(255,255,255,0.45);margin-left:0.6rem">Forward-looking trend analysis and AI forecasting</span></span>
+          <span class="acc-arrow">▼</span>
+        </button>
+        <div class="accordion-body">
+          <ul>
+            <li>💬 "What is projected revenue for Q3 based on current trends?"</li>
+            <li>💬 "If churn continues at this rate, how many customers do we lose by year end?"</li>
+            <li>💬 "Forecast sales for the next 6 months by region"</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3b: DIAGNOSTIC ACCORDION -->
+    <div class="spotter-sub-label">🔎 Diagnostics</div>
+    <div class="spotter-sub-h3">Spotter gave an unexpected result — why?</div>
+    <div class="accordion spotter-accordion" id="spotterAccordion">
+      <div class="accordion-item">
+        <button class="accordion-header" aria-expanded="false" onclick="toggleAccordion(this)">
+          Wrong aggregation <span class="acc-arrow">▼</span>
+        </button>
+        <div class="accordion-body">
+          The Model column has an incorrect default aggregation (e.g. AVG instead of SUM). <strong>Fix:</strong> open the Model editor, find the column, and update the Default Aggregation field.
+        </div>
+      </div>
+      <div class="accordion-item">
+        <button class="accordion-header" aria-expanded="false" onclick="toggleAccordion(this)">
+          Synonym missing <span class="acc-arrow">▼</span>
+        </button>
+        <div class="accordion-body">
+          Spotter didn't understand the term you used — it's not in the model's vocabulary. <strong>Fix:</strong> add the missing synonym in the Model column settings under "Synonyms".
+        </div>
+      </div>
+      <div class="accordion-item">
+        <button class="accordion-header" aria-expanded="false" onclick="toggleAccordion(this)">
+          Ambiguous column names <span class="acc-arrow">▼</span>
+        </button>
+        <div class="accordion-body">
+          Multiple columns could match the query term, causing Spotter to pick the wrong one. <strong>Fix:</strong> rename columns to be unambiguous — e.g. "Order Date" not just "Date", "Sales Revenue" not just "Revenue".
+        </div>
+      </div>
+      <div class="accordion-item">
+        <button class="accordion-header" aria-expanded="false" onclick="toggleAccordion(this)">
+          No data for that filter <span class="acc-arrow">▼</span>
+        </button>
+        <div class="accordion-body">
+          The result is correct — there's just no data matching the filter applied. <strong>Fix:</strong> verify data exists in the CDW for that time range or dimension value before assuming Spotter is wrong.
+        </div>
+      </div>
+      <div class="accordion-item">
+        <button class="accordion-header" aria-expanded="false" onclick="toggleAccordion(this)">
+          Missing join <span class="acc-arrow">▼</span>
+        </button>
+        <div class="accordion-body">
+          The tables needed for that query aren't joined in the Model, so Spotter can't traverse the relationship. <strong>Fix:</strong> add the missing join in the data model between the relevant tables.
+        </div>
+      </div>
+    </div>
+
+    <!-- 3c: LIMITATIONS -->
+    <div class="spotter-sub-label" style="margin-top:1.5rem">ℹ️ Honest Expectations</div>
+    <div class="spotter-sub-h3">What Spotter can't do (yet)</div>
+    <div class="spotter-limitations">
+      <ul>
+        <li>Single-connection analysis is Spotter's default mode — for questions spanning multiple data sources, <strong>Auto-mode</strong> enables cross-connection analysis automatically without needing to specify a model first</li>
+        <li>Does not write back to your data warehouse — read-only</li>
+        <li>Results depend entirely on model quality — garbage in, garbage out</li>
+      </ul>
+    </div>
+
+    <div style="display:flex;flex-wrap:wrap;gap:1rem;margin-top:2rem">
+      <a href="https://docs.thoughtspot.com/cloud/latest/spotter" target="_blank" rel="noopener noreferrer" class="btn btn-primary" data-tooltip="Official documentation for enabling and configuring Spotter">📖 Spotter Setup Guide</a>
+      <a href="https://training.thoughtspot.com/page/spotter-catalog" target="_blank" rel="noopener noreferrer" class="btn btn-outline" data-tooltip="Self-paced training courses on using Spotter effectively">🎓 Spotter eLearning</a>
+      <a href="https://community.thoughtspot.com/s/article/Spotter-Resource-Hub" target="_blank" rel="noopener noreferrer" class="btn btn-outline" data-tooltip="Community articles, tips, and best practices for Spotter">🌐 Spotter Resource Hub</a>
+    </div>
+
+  </div>
+</div>
+
+
+<!-- ═══ EVENTS ═══ -->
+<div style="background:var(--ts-light);border-top:1px solid var(--ts-border);border-bottom:1px solid var(--ts-border)">
+<section class="section" id="events">
+  <h2 class="section-title">Subscribe to Regular Events</h2>
+  <p class="section-sub">Stay connected to the ThoughtSpot community and keep learning after go-live</p>
+
+  <div class="card-grid">
+    <a class="card" href="https://go.thoughtspot.com/webinar-spotmap.html" target="_blank" rel="noopener noreferrer">
+      <div class="card-icon">🗺️</div>
+      <h3>SpotMap</h3>
+      <p>ThoughtSpot's roadmap webinar series. See what's coming next, ask the product team questions directly, and align your rollout with upcoming features.</p>
+      <span class="card-link">Register →</span>
+    </a>
+    <a class="card" href="https://go.thoughtspot.com/webinar-thoughtspot-insight-hours.html" target="_blank" rel="noopener noreferrer">
+      <div class="card-icon">💡</div>
+      <h3>Insights Hour</h3>
+      <p>Regular live sessions featuring customer stories, best practices, and hands-on demos. A great way to pick up tips your implementation team may have missed.</p>
+      <span class="card-link">Register →</span>
+    </a>
+    <a class="card" href="https://www.thoughtspot.com/data-chief/podcast" target="_blank" rel="noopener noreferrer">
+      <div class="card-icon">🎙️</div>
+      <h3>The Data Chief Podcast</h3>
+      <p>Conversations with CDOs and data leaders on building data culture, driving analytics adoption, and making self-service analytics stick across organisations.</p>
+      <span class="card-link">Listen →</span>
+    </a>
+  </div>
+</section>
+</div>
+
+
+<!-- ═══ RESOURCES ═══ -->
+<section class="section" id="resources">
+  <h2 class="section-title">Resources Hub</h2>
+  <p class="section-sub">Everything you need, in one place</p>
+
+  <div class="resource-grid">
+    <a class="resource-card" href="https://docs.thoughtspot.com" target="_blank" rel="noopener noreferrer">
+      <div class="resource-icon">📚</div>
+      <div><h4>ThoughtSpot Documentation</h4><p>Full product docs — admin guide, data modeling, security, APIs, and release notes.</p></div>
+    </a>
+    <a class="resource-card" href="https://training.thoughtspot.com/" target="_blank" rel="noopener noreferrer">
+      <div class="resource-icon">🎓</div>
+      <div><h4>ThoughtSpot University</h4><p>Free eLearning paths for Admins, Analysts, and End Users. Certifications available.</p></div>
+    </a>
+    <a class="resource-card" href="https://community.thoughtspot.com" target="_blank" rel="noopener noreferrer">
+      <div class="resource-icon">💬</div>
+      <div><h4>ThoughtSpot Community</h4><p>Ask questions, share ideas, and connect with thousands of ThoughtSpot practitioners.</p></div>
+    </a>
+    <a class="resource-card" href="https://docs.thoughtspot.com/cloud/latest/connections" target="_blank" rel="noopener noreferrer">
+      <div class="resource-icon">🔌</div>
+      <div><h4>Data Connection Guide</h4><p>Step-by-step instructions for connecting Snowflake, BigQuery, Redshift, and more.</p></div>
+    </a>
+    <a class="resource-card" href="https://docs.thoughtspot.com/cloud/latest/security-rls-implement" target="_blank" rel="noopener noreferrer">
+      <div class="resource-icon">🔑</div>
+      <div><h4>RLS Design Patterns</h4><p>Best practices and design patterns for implementing row-level security in ThoughtSpot.</p></div>
+    </a>
+    <a class="resource-card" href="https://docs.thoughtspot.com/cloud/latest/liveboards" target="_blank" rel="noopener noreferrer">
+      <div class="resource-icon">📊</div>
+      <div><h4>Liveboard Creation Guide</h4><p>How to build, share, and schedule Liveboards for your organisation.</p></div>
+    </a>
+    <a class="resource-card" href="https://docs.thoughtspot.com/cloud/latest/tml" target="_blank" rel="noopener noreferrer">
+      <div class="resource-icon">📄</div>
+      <div><h4>ThoughtSpot Modeling Language (TML)</h4><p>Export, version-control, and migrate your Models and Liveboards as code.</p></div>
+    </a>
+    <a class="resource-card" href="https://docs.thoughtspot.com/cloud/latest/public-api-reference" target="_blank" rel="noopener noreferrer">
+      <div class="resource-icon">⚡</div>
+      <div><h4>REST API Reference</h4><p>Automate user provisioning, content promotion, and usage reporting via REST API v2.0.</p></div>
+    </a>
+    <a class="resource-card" href="https://docs.thoughtspot.com/cloud/latest/support-contact" target="_blank" rel="noopener noreferrer">
+      <div class="resource-icon">🆘</div>
+      <div><h4>Submit a Support Case</h4><p>How to raise and track support tickets with the ThoughtSpot support team.</p></div>
+    </a>
+  </div>
+</section>
+
+
+<!-- ═══ PROGRESS TRACKER (P3) ═══ -->
+
+
+<!-- ═══ FOOTER ═══ -->
+<footer>
+  <div class="footer-title">ThoughtSpot Analytics · SpotGuide</div>
+  <div class="footer-sub">Built to help you go from activation to insight as fast as possible.</div>
+  <div class="footer-links">
+    <a href="https://docs.thoughtspot.com" target="_blank" rel="noopener noreferrer">Docs</a>
+    <a href="https://community.thoughtspot.com" target="_blank" rel="noopener noreferrer">Community</a>
+    <a href="https://training.thoughtspot.com" target="_blank" rel="noopener noreferrer">University</a>
+    <a href="https://developers.thoughtspot.com" target="_blank" rel="noopener noreferrer">Developer Hub</a>
+  </div>
+</footer>
+
+
+<script>
+// ── ROLE SELECTOR ──
+const ROLE_LABELS = { general:'General', admin:'Admin / IT', analyst:'Data / Analyst', business:'Business / Product', enduser:'End User' };
+const ROLE_DIMS = {
+  general:  () => false,
+  admin:    (r) => r === 'analyst',
+  analyst:  (r) => r === 'admin',
+  business: (r) => r === 'admin' || r === 'analyst',
+  enduser:  (r) => r === 'admin' || r === 'analyst'
+};
+
+function setRole(role, btn) {
+  localStorage.setItem('sg_role', role);
+  document.querySelectorAll('.role-btn').forEach(b => { b.classList.remove('active'); b.setAttribute('aria-pressed','false'); });
+  btn.classList.add('active');
+  btn.setAttribute('aria-pressed','true');
+  applyRoleFilter(role);
+  const ind = document.getElementById('navRoleIndicator');
+  document.getElementById('navRoleLabel').textContent = ROLE_LABELS[role];
+  ind.classList.add('visible');
+}
+
+function clearRole() {
+  localStorage.removeItem('sg_role');
+  document.querySelectorAll('.role-btn').forEach(b => { b.classList.remove('active'); b.setAttribute('aria-pressed','false'); });
+  document.getElementById('navRoleIndicator').classList.remove('visible');
+  applyRoleFilter(null);
+}
+
+function applyRoleFilter(role) {
+  document.querySelectorAll('[data-role]').forEach(el => {
+    const r = el.dataset.role;
+    if (!role || r === 'all' || r === 'critical') {
+      el.classList.remove('role-dim');
+    } else if (ROLE_DIMS[role] && ROLE_DIMS[role](r)) {
+      el.classList.add('role-dim');
+    } else {
+      el.classList.remove('role-dim');
+    }
+  });
+}
+
+// Init role on load
+(function initRole() {
+  const saved = localStorage.getItem('sg_role');
+  if (saved) {
+    const btn = document.querySelector(`.role-btn[data-role="${saved}"]`);
+    if (btn) { btn.classList.add('active'); btn.setAttribute('aria-pressed','true'); }
+    document.getElementById('navRoleLabel').textContent = ROLE_LABELS[saved] || saved;
+    document.getElementById('navRoleIndicator').classList.add('visible');
+    applyRoleFilter(saved);
+  }
+})();
+
+// ── CONCEPTS DRAWER ──
+const TSA_CONCEPTS = [
+  {term:'Connection', def:'A live link from ThoughtSpot to your cloud data warehouse (Snowflake, BigQuery, Redshift, etc.). Data never moves — ThoughtSpot queries it in place.'},
+  {term:'Model', def:'The semantic layer — a curated view of your data with business-friendly names, joins, and metrics. This is what Search and Spotter query against.'},
+  {term:'Liveboard', def:'A real-time, interactive dashboard made up of Answers. Unlike static dashboards, every visualisation is live and drillable.'},
+  {term:'Answer', def:'A single chart or table result from a search query. Answers can be saved and pinned to Liveboards.'},
+  {term:'Spotter', def:'ThoughtSpot\'s AI analyst. Ask questions in plain English and get charts, tables, and narrative explanations — no SQL required.'},
+  {term:'RLS (Row-Level Security)', def:'Rules that restrict which rows of data each user or group can see. Defined once at the data layer, enforced everywhere.'},
+  {term:'Group', def:'The unit of access control. Users belong to groups; groups control both permissions and RLS rules.'},
+  {term:'TML (ThoughtSpot Modeling Language)', def:'YAML-based format for exporting and version-controlling your Models, Liveboards, and other objects — enabling CI/CD and environment migration.'},
+  {term:'RBAC (Role-Based Access Control)', def:'Controls what users can do inside ThoughtSpot — who can view, edit, or download content. Managed through Groups and system Roles. Not to be confused with RLS, which controls which data rows are visible.'},
+];
+function toggleConceptsDrawer() {
+  const drawer = document.getElementById('tsaConceptsDrawer');
+  const overlay = document.getElementById('tsaConceptsOverlay');
+  const isOpen = drawer.classList.toggle('open');
+  drawer.setAttribute('aria-hidden', !isOpen);
+  overlay.classList.toggle('visible', isOpen);
+  if (isOpen) populateConcepts();
+}
+function populateConcepts() {
+  const content = document.getElementById('tsaConceptsContent');
+  if (!content || content.children.length > 0) return;
+  TSA_CONCEPTS.forEach(({term, def}) => {
+    const item = document.createElement('dl');
+    item.className = 'tsa-concept-term';
+    item.innerHTML = `<dt>${term}</dt><dd>${def}</dd>`;
+    content.appendChild(item);
+  });
+}
+function filterConcepts(query) {
+  const q = query.toLowerCase();
+  document.querySelectorAll('#tsaConceptsContent .tsa-concept-term').forEach(term => {
+    term.style.display = term.textContent.toLowerCase().includes(q) ? '' : 'none';
+  });
+}
+
+// ── ACCORDION ──
+function toggleAccordion(btn) {
+  const body = btn.nextElementSibling;
+  const open = body.classList.toggle('open');
+  btn.classList.toggle('open', open);
+  btn.setAttribute('aria-expanded', open);
+}
+
+// ── CDW TABS ──
+function switchCDW(platform, btn) {
+  document.querySelectorAll('.cdw-tab-btn').forEach(b => { b.classList.remove('active'); b.setAttribute('aria-selected','false'); });
+  document.querySelectorAll('.cdw-tab-content').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  btn.setAttribute('aria-selected','true');
+  document.getElementById('cdw-' + platform).classList.add('active');
+}
+
+// ── ANNOUNCEMENT TEMPLATE ──
+function toggleAnnounce() {
+  const btn = document.getElementById('announceToggle');
+  const card = document.getElementById('announceCard');
+  const open = card.classList.toggle('open');
+  btn.classList.toggle('open', open);
+  btn.setAttribute('aria-expanded', open);
+  card.setAttribute('aria-hidden', !open);
+  btn.querySelector('.arrow').textContent = open ? '▲' : '▼';
+  btn.firstChild.textContent = open ? 'Hide email template ' : 'Show email template ';
+}
+
+function copyAnnouncement() {
+  const el = document.getElementById('announceText');
+  const text = el.innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = document.getElementById('copyBtn');
+    btn.textContent = '✅ Copied!';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = '📋 Copy to clipboard'; btn.classList.remove('copied'); }, 2000);
+  });
+}
+
+// ── PROGRESS TRACKER ──
+const PT_STATES = ['not-started', 'in-progress', 'complete'];
+const PT_ICONS  = { 'not-started': '', 'in-progress': '●', 'complete': '✓' };
+
+function cyclePhase(phase) {
+  const el = document.querySelector(`.pt-phase[data-phase="${phase}"]`);
+  const cur = el.dataset.state;
+  const next = PT_STATES[(PT_STATES.indexOf(cur) + 1) % PT_STATES.length];
+  el.dataset.state = next;
+  el.querySelector('.pt-dot').textContent = PT_ICONS[next];
+  saveProgress();
+}
+
+function saveProgress() {
+  const state = {};
+  document.querySelectorAll('.pt-phase').forEach(el => { state[el.dataset.phase] = el.dataset.state; });
+  localStorage.setItem('sg_progress', JSON.stringify(state));
+}
+
+(function initProgress() {
+  const saved = localStorage.getItem('sg_progress');
+  if (!saved) return;
+  const state = JSON.parse(saved);
+  Object.entries(state).forEach(([phase, s]) => {
+    const el = document.querySelector(`.pt-phase[data-phase="${phase}"]`);
+    if (el) { el.dataset.state = s; el.querySelector('.pt-dot').textContent = PT_ICONS[s] || ''; }
+  });
+})();
+
+</script>
+
+<!-- CONCEPTS DRAWER -->
+<button id="tsaConceptsBtn" onclick="toggleConceptsDrawer()" aria-label="Open ThoughtSpot Concepts glossary">📖 Concepts</button>
+<div id="tsaConceptsDrawer" role="dialog" aria-label="ThoughtSpot Concepts" aria-hidden="true">
+  <div class="tsa-concepts-hdr">
+    <span>📖 ThoughtSpot Concepts</span>
+    <input id="tsaConceptsSearch" type="text" placeholder="Search terms…" oninput="filterConcepts(this.value)" />
+    <button onclick="toggleConceptsDrawer()" aria-label="Close">✕</button>
+  </div>
+  <div id="tsaConceptsContent"></div>
+</div>
+<div id="tsaConceptsOverlay" onclick="toggleConceptsDrawer()"></div>
+
+</body>
+</html>
